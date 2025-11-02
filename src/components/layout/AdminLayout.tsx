@@ -19,7 +19,7 @@ const navItems = [
   { href: "/admin", icon: Home, label: "Dashboard" },
   { href: "/admin/content", icon: FileText, label: "Content" },
   { href: "/admin/leads", icon: Users, label: "Leads / Clients" },
-  { href: "/admin/projects", icon: Briefcase, label: "Projects" },
+  // { href: "/admin/projects", icon: Briefcase, label: "Projects" }, // Removed as per new flow
   { href: "/admin/chat", icon: MessageSquare, label: "Chat" },
   { href: "/admin/analytics", icon: LineChart, label: "Analytics" },
   { href: "/admin/settings", icon: Settings, label: "Settings" },
