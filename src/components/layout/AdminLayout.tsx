@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Briefcase,
   LogOut,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
@@ -19,6 +20,7 @@ const navItems = [
   { href: "/admin", icon: Home, label: "Dashboard" },
   { href: "/admin/content", icon: FileText, label: "Content" },
   { href: "/admin/leads", icon: Users, label: "Leads / Clients" },
+  { href: "/admin/invoices", icon: Receipt, label: "Invoices" },
   // { href: "/admin/projects", icon: Briefcase, label: "Projects" }, // Removed as per new flow
   { href: "/admin/chat", icon: MessageSquare, label: "Chat" },
   { href: "/admin/analytics", icon: LineChart, label: "Analytics" },
