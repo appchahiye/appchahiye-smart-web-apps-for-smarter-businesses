@@ -21,25 +21,16 @@ import { Toaster, toast } from '@/components/ui/sonner';
 type ClientWithUser = Client & { user?: User };
 const invoiceFormSchema = z.object({
   clientId: z.string().min(1, 'Client is required'),
-  amount: z.preprocess(
-    (a) => {
-      if (typeof a === 'string') return parseFloat(a);
-      if (typeof a === 'number') return a;
-      return undefined;
-    },
-    z.number().positive('Amount must be a positive number')
-  ),
+  amount: z.coerce.number().positive('Amount must be a positive number'),
 });
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
-// Explicitly type the schema to resolve the conflict with react-hook-form
-const invoiceSchema: z.ZodType<InvoiceFormValues> = invoiceFormSchema;
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<InvoiceWithClientInfo[]>([]);
   const [clients, setClients] = useState<ClientWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const form = useForm<InvoiceFormValues>({
-    resolver: zodResolver(invoiceSchema),
+    resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       clientId: '',
       amount: 0,
@@ -114,7 +105,7 @@ export default function InvoicesPage() {
                 <FormField control={form.control} name="amount" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Amount ($)</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value)} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
