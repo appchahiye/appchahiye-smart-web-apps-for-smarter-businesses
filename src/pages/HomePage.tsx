@@ -25,21 +25,27 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api-client';
-import type { WebsiteContent, PortfolioItem } from '@shared/types';
+import type { WebsiteContent } from '@shared/types';
 import { GetStartedModal } from '@/components/GetStartedModal';
 import { Toaster, toast } from '@/components/ui/sonner';
+import { useContentStore } from '@/stores/contentStore';
+import { useDynamicAssets } from '@/hooks/use-dynamic-assets';
 const navLinks = [
   { name: 'How It Works', href: '#how-it-works' },
   { name: 'Portfolio', href: '#portfolio' },
   { name: 'Contact', href: '#contact' },
 ];
-const AppLogo = () => (
+const AppLogo = ({ logoUrl }: { logoUrl?: string }) => (
   <a href="#" className="flex items-center gap-2 font-bold text-xl">
-    <div className="w-7 h-7 bg-gradient-brand rounded-lg" />
+    {logoUrl ? (
+      <img src={logoUrl} alt="AppChahiye Logo" className="h-8 w-auto" />
+    ) : (
+      <div className="w-7 h-7 bg-gradient-brand rounded-lg" />
+    )}
     AppChahiye
   </a>
 );
-const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
+const Header = ({ logoUrl, onGetStartedClick }: { logoUrl?: string; onGetStartedClick: () => void }) => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -50,7 +56,7 @@ const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
     <header className={cn('fixed top-0 left-0 right-0 z-50 transition-all duration-300', scrolled ? 'bg-background/80 backdrop-blur-lg border-b' : 'bg-transparent')}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <AppLogo />
+          <AppLogo logoUrl={logoUrl} />
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <a key={link.name} href={link.href} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -333,12 +339,12 @@ const RequirementsFormSection = () => {
     </section>
   );
 };
-const Footer = () => (
+const Footer = ({ logoUrl }: { logoUrl?: string }) => (
     <footer className="bg-background border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="space-y-4">
-                    <AppLogo />
+                    <AppLogo logoUrl={logoUrl} />
                     <p className="text-muted-foreground text-sm">Smart Web Apps for Smarter Businesses</p>
                 </div>
             </div>
@@ -358,20 +364,19 @@ const Footer = () => (
     </footer>
 );
 export function HomePage() {
-  const [content, setContent] = useState<WebsiteContent | null>(null);
+  const { content, fetchContent } = useContentStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   useEffect(() => {
-    api<WebsiteContent>('/api/content')
-      .then(data => setContent(data))
-      .catch(err => console.error("Failed to fetch content:", err));
-  }, []);
+    fetchContent();
+  }, [fetchContent]);
+  useDynamicAssets(content?.brandAssets, content?.seoMetadata);
   const handleGetStartedClick = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
   return (
     <div className="bg-background text-foreground">
       <Toaster richColors />
       <GetStartedModal isOpen={isModalOpen} onClose={handleCloseModal} />
-      <Header onGetStartedClick={handleGetStartedClick} />
+      <Header logoUrl={content?.brandAssets.logoUrl} onGetStartedClick={handleGetStartedClick} />
       <main>
         <HeroSection content={content?.hero} onGetStartedClick={handleGetStartedClick} />
         <HowItWorksSection content={content?.howItWorks} />
@@ -380,7 +385,7 @@ export function HomePage() {
         <TestimonialsSection content={content?.testimonials} />
         <RequirementsFormSection />
       </main>
-      <Footer />
+      <Footer logoUrl={content?.brandAssets.logoUrl} />
     </div>
   );
 }

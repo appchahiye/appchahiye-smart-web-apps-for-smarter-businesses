@@ -11,6 +11,7 @@ import { api } from '@/lib/api-client';
 import type { WebsiteContent } from '@shared/types';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { Loader2 } from 'lucide-react';
+import { useContentStore } from '@/stores/contentStore';
 const settingsSchema = z.object({
   brandAssets: z.object({
     logoUrl: z.string().min(1, 'Logo is required'),
@@ -25,35 +26,32 @@ const settingsSchema = z.object({
 });
 type SettingsFormValues = z.infer<typeof settingsSchema>;
 export default function SettingsPage() {
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [fullContent, setFullContent] = useState<WebsiteContent | null>(null);
+  const { content, isLoading, fetchContent, setContent } = useContentStore();
   const { register, handleSubmit, reset, formState: { errors } } = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
   });
   useEffect(() => {
-    api<WebsiteContent>('/api/content')
-      .then(data => {
-        setFullContent(data);
-        reset({
-          brandAssets: data.brandAssets,
-          seoMetadata: data.seoMetadata,
-        });
-        setIsLoading(false);
-      })
-      .catch(() => {
-        toast.error('Failed to load settings.');
-        setIsLoading(false);
+    if (!content) {
+      fetchContent();
+    }
+  }, [content, fetchContent]);
+  useEffect(() => {
+    if (content) {
+      reset({
+        brandAssets: content.brandAssets,
+        seoMetadata: content.seoMetadata,
       });
-  }, [reset]);
+    }
+  }, [content, reset]);
   const onSubmit = async (data: SettingsFormValues) => {
-    if (!fullContent) {
+    if (!content) {
       toast.error('Cannot save, original content not loaded.');
       return;
     }
     setIsSaving(true);
     const updatedContent: WebsiteContent = {
-      ...fullContent,
+      ...content,
       brandAssets: data.brandAssets,
       seoMetadata: data.seoMetadata,
     };
@@ -62,6 +60,7 @@ export default function SettingsPage() {
         method: 'PUT',
         body: JSON.stringify(updatedContent),
       });
+      setContent(updatedContent); // Update global store
       toast.success('Settings updated successfully!');
     } catch (error) {
       toast.error('Failed to update settings.');
@@ -69,7 +68,7 @@ export default function SettingsPage() {
       setIsSaving(false);
     }
   };
-  if (isLoading) {
+  if (isLoading && !content) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-full">
