@@ -1,5 +1,5 @@
 import { Entity, IndexedEntity } from "./core-utils";
-import type { WebsiteContent, User, Client, Project, Milestone, Invoice } from "@shared/types";
+import type { WebsiteContent, User, Client, Project, Milestone, Invoice, Message } from "@shared/types";
 import type { Env } from './core-utils';
 const MOCK_WEBSITE_CONTENT: WebsiteContent = { hero: { headline: "Your Business, Simplified.", subheadline: "We build smart web apps that help your business run smoother, faster, and smarter.", imageUrl: "https://framerusercontent.com/images/3X5p25sTzE2bH5L3u3Ceo8nZpU.png" },
   howItWorks: [
@@ -105,5 +105,19 @@ export class InvoiceEntity extends IndexedEntity<Invoice> {
     status: 'pending',
     pdf_url: '',
     issuedAt: 0,
+  };
+}
+// --- Message Entity ---
+export class MessageEntity extends IndexedEntity<Message> {
+  static readonly entityName = "message";
+  static readonly indexName = "messages";
+  static readonly initialState: Message = {
+    id: '',
+    clientId: '',
+    senderId: '',
+    receiverId: '',
+    content: '',
+    attachments: [],
+    createdAt: 0,
   };
 }

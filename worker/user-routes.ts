@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity } from "./entities";
+import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo } from "@shared/types";
+import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
 // Generates a random, memorable password.
@@ -184,6 +184,55 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!(await invoiceEntity.exists())) return notFound(c);
     await invoiceEntity.patch({ status });
     return ok(c, await invoiceEntity.getState());
+  });
+  // --- Chat System ---
+  app.get('/api/chat/:clientId', async (c) => {
+    const { clientId } = c.req.param();
+    const { items: allMessages } = await MessageEntity.list(c.env);
+    const conversationMessages = allMessages.filter(m => m.clientId === clientId);
+    const { items: allUsers } = await UserEntity.list(c.env);
+    const usersById = new Map(allUsers.map(u => [u.id, u]));
+    const adminUser = allUsers.find(u => u.role === 'admin'); // Assuming one admin for now
+    if (!adminUser) { // Add admin user if not exists
+        const admin: User = { id: 'admin-user-01', email: 'appchahiye@gmail.com', name: 'Admin User', role: 'admin', passwordHash: '' };
+        await UserEntity.create(c.env, admin);
+        usersById.set(admin.id, admin);
+    }
+    const messagesWithSender: MessageWithSender[] = conversationMessages.map(msg => {
+      const sender = usersById.get(msg.senderId);
+      return {
+        ...msg,
+        sender: {
+          name: sender?.name || 'Unknown',
+          role: sender?.role || 'client',
+        },
+      };
+    }).sort((a, b) => a.createdAt - b.createdAt);
+    return ok(c, messagesWithSender);
+  });
+  app.post('/api/chat/:clientId', async (c) => {
+    const { clientId } = c.req.param();
+    const { senderId, content } = await c.req.json<{ senderId: string; content: string }>();
+    if (!senderId || !content) return bad(c, 'Sender and content are required');
+    const clientEntity = new ClientEntity(c.env, clientId);
+    if (!(await clientEntity.exists())) return notFound(c, 'Client not found');
+    const { items: allUsers } = await UserEntity.list(c.env);
+    const adminUser = allUsers.find(u => u.role === 'admin');
+    if (!adminUser) return bad(c, 'Admin user not configured');
+    const sender = allUsers.find(u => u.id === senderId);
+    if (!sender) return notFound(c, 'Sender not found');
+    const receiverId = sender.role === 'admin' ? clientId : adminUser.id;
+    const newMessage: Message = {
+      id: crypto.randomUUID(),
+      clientId,
+      senderId,
+      receiverId,
+      content,
+      attachments: [],
+      createdAt: Date.now(),
+    };
+    await MessageEntity.create(c.env, newMessage);
+    return ok(c, newMessage);
   });
   // --- Client Portal Data ---
   app.get('/api/portal/:clientId/projects', async (c) => {
