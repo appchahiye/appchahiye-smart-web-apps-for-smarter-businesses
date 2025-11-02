@@ -23,6 +23,10 @@ import ClientProjectsPage from './pages/portal/ClientProjectsPage';
 import AdminInvoicesPage from './pages/admin/InvoicesPage';
 import ClientInvoicesPage from './pages/portal/ClientInvoicesPage';
 import AdminChatPage from './pages/admin/ChatPage';
+import AnalyticsPage from './pages/admin/AnalyticsPage';
+import SettingsPage from './pages/admin/SettingsPage';
+import ClientFilesPage from './pages/portal/ClientFilesPage';
+import ClientAccountPage from './pages/portal/ClientAccountPage';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -65,6 +69,16 @@ const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
   },
   {
+    path: "/admin/analytics",
+    element: <ProtectedRoute><AnalyticsPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/admin/settings",
+    element: <ProtectedRoute><SettingsPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
     path: "/portal/login",
     element: <ClientLoginPage />,
     errorElement: <RouteErrorBoundary />,
@@ -82,6 +96,16 @@ const router = createBrowserRouter([
   {
     path: "/portal/:clientId/invoices",
     element: <ClientInvoicesPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/portal/:clientId/files",
+    element: <ClientFilesPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/portal/:clientId/account",
+    element: <ClientAccountPage />,
     errorElement: <RouteErrorBoundary />,
   },
 ]);
