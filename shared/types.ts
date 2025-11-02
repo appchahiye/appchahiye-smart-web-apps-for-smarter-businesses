@@ -3,14 +3,41 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
 }
-// --- Authentication Types ---
-export interface AuthUser {
+// --- User & Client Types ---
+export type UserRole = 'admin' | 'client';
+export interface User {
   id: string;
   email: string;
-  name: string;
+  name:string;
+  role: UserRole;
+  passwordHash: string; // Stored on backend
 }
+export interface Client {
+  id: string; // Corresponds to User ID
+  userId: string;
+  company: string;
+  projectType: string;
+  portalUrl: string;
+  status: 'active' | 'pending' | 'completed';
+  createdAt: number; // epoch millis
+}
+export interface ClientRegistrationResponse {
+  client: Client;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  password_plaintext: string; // Only sent on creation
+}
+// --- Authentication Types ---
 export interface LoginResponse {
-  user: AuthUser;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: UserRole;
+  };
   token: string;
 }
 // --- Website Content Types ---
