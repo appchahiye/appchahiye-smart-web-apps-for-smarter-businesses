@@ -5,11 +5,8 @@
 import type { ApiResponse } from "@shared/types";
 import { DurableObject } from "cloudflare:workers";
 import type { Context } from "hono";
-import type { R2Bucket } from '@cloudflare/workers-types';
 export interface Env {
   GlobalDurableObject: DurableObjectNamespace<GlobalDurableObject>;
-  R2_BUCKET: R2Bucket;
-  R2_PUBLIC_URL: string;
 }
 type Doc<T> = { v: number; data: T };
 /**

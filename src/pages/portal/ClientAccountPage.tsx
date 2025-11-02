@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
@@ -14,12 +14,11 @@ import { api } from "@/lib/api-client";
 import type { ClientProfile } from "@shared/types";
 import { Toaster, toast } from "@/components/ui/sonner";
 import { Loader2 } from "lucide-react";
-import { FileUpload } from "@/components/ui/file-upload";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   company: z.string().min(2, "Company name is required"),
-  avatarUrl: z.string().optional(),
+  avatarUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
 });
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
@@ -63,7 +62,6 @@ export default function ClientAccountPage() {
         body: JSON.stringify(data),
       });
       toast.success("Profile updated successfully!");
-      // Optionally refetch data to update avatar preview instantly
       setProfileData(prev => prev ? { ...prev, ...data } : null);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update profile.");
@@ -101,33 +99,32 @@ export default function ClientAccountPage() {
               </div>
             ) : (
               <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                <div className="flex items-start gap-6">
-                  <div className="space-y-2">
-                    <Label>Profile Picture</Label>
-                    <Controller
-                      name="avatarUrl"
-                      control={profileForm.control}
-                      render={({ field }) => <FileUpload value={field.value || ''} onChange={field.onChange} className="w-32 h-32 rounded-full" />}
-                    />
-                  </div>
-                  <div className="flex-1 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" {...profileForm.register('name')} />
-                        {profileForm.formState.errors.name && <p className="text-sm text-red-500">{profileForm.formState.errors.name.message}</p>}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" defaultValue={profileData?.email || ''} disabled />
-                      </div>
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={profileForm.watch('avatarUrl') || profileData?.avatarUrl} alt={profileData?.name} />
+                    <AvatarFallback>{profileData?.name?.charAt(0) || 'C'}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input id="name" {...profileForm.register('name')} />
+                      {profileForm.formState.errors.name && <p className="text-sm text-red-500">{profileForm.formState.errors.name.message}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="company">Company Name</Label>
-                      <Input id="company" {...profileForm.register('company')} />
-                      {profileForm.formState.errors.company && <p className="text-sm text-red-500">{profileForm.formState.errors.company.message}</p>}
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input id="email" defaultValue={profileData?.email || ''} disabled />
                     </div>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company">Company Name</Label>
+                  <Input id="company" {...profileForm.register('company')} />
+                  {profileForm.formState.errors.company && <p className="text-sm text-red-500">{profileForm.formState.errors.company.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="avatarUrl">Avatar URL</Label>
+                  <Input id="avatarUrl" {...profileForm.register('avatarUrl')} placeholder="https://example.com/avatar.png" />
+                  {profileForm.formState.errors.avatarUrl && <p className="text-sm text-red-500">{profileForm.formState.errors.avatarUrl.message}</p>}
                 </div>
                 <Button type="submit" disabled={profileForm.formState.isSubmitting}>
                   {profileForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

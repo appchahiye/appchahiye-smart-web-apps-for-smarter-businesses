@@ -13,7 +13,6 @@ import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import type { WebsiteContent } from '@shared/types';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
-import { FileUpload } from '@/components/ui/file-upload';
 const heroSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   subheadline: z.string().min(1, 'Subheadline is required'),
@@ -148,12 +147,8 @@ export default function ContentManagerPage() {
                   {errors.hero?.subheadline && <p className="text-red-500 text-sm mt-1">{errors.hero.subheadline.message}</p>}
                 </div>
                 <div>
-                  <Label>Image</Label>
-                  <Controller
-                    name="hero.imageUrl"
-                    control={control}
-                    render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} />}
-                  />
+                  <Label>Image URL</Label>
+                  <Input {...register('hero.imageUrl')} placeholder="https://example.com/image.png" />
                   {errors.hero?.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.hero.imageUrl.message}</p>}
                 </div>
               </CardContent>
@@ -171,12 +166,8 @@ export default function ContentManagerPage() {
                         <Input {...register(`portfolio.${index}.name`)} />
                       </div>
                       <div>
-                        <Label>Image</Label>
-                        <Controller
-                          name={`portfolio.${index}.image`}
-                          control={control}
-                          render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} />}
-                        />
+                        <Label>Image URL</Label>
+                        <Input {...register(`portfolio.${index}.image`)} placeholder="https://example.com/image.png" />
                       </div>
                     </div>
                     <Button type="button" variant="destructive" size="icon" onClick={() => removePortfolio(index)}><Trash2 className="h-4 w-4" /></Button>
@@ -202,12 +193,8 @@ export default function ContentManagerPage() {
                     <div><Label>Company</Label><Input {...register(`testimonials.${index}.company`)} /></div>
                     <div><Label>Text</Label><Textarea {...register(`testimonials.${index}.text`)} /></div>
                     <div>
-                      <Label>Avatar</Label>
-                      <Controller
-                        name={`testimonials.${index}.avatar`}
-                        control={control}
-                        render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} className="h-24 w-24 rounded-full" />}
-                      />
+                      <Label>Avatar URL</Label>
+                      <Input {...register(`testimonials.${index}.avatar`)} placeholder="https://example.com/avatar.png" />
                     </div>
                   </div>
                 ))}
