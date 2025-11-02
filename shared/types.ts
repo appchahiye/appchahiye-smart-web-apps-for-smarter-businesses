@@ -76,6 +76,22 @@ export interface InvoiceWithClientInfo extends Invoice {
   clientName: string;
   clientCompany: string;
 }
+// --- Chat Types ---
+export interface Message {
+  id: string;
+  clientId: string; // Links the message to a client's conversation
+  senderId: string; // User ID of the sender (can be admin or client)
+  receiverId: string; // User ID of the receiver
+  content: string;
+  attachments: string[]; // Array of URLs
+  createdAt: number; // epoch millis
+}
+export interface MessageWithSender extends Message {
+  sender: {
+    name: string;
+    role: UserRole;
+  };
+}
 // --- Website Content Types ---
 export interface HeroContent {
   headline: string;
