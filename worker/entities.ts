@@ -1,5 +1,5 @@
 import { Entity, IndexedEntity } from "./core-utils";
-import type { WebsiteContent, User, Client } from "@shared/types";
+import type { WebsiteContent, User, Client, Project, Milestone } from "@shared/types";
 import type { Env } from './core-utils';
 const MOCK_WEBSITE_CONTENT: WebsiteContent = { hero: { headline: "Your Business, Simplified.", subheadline: "We build smart web apps that help your business run smoother, faster, and smarter.", imageUrl: "https://framerusercontent.com/images/3X5p25sTzE2bH5L3u3Ceo8nZpU.png" },
   howItWorks: [
@@ -63,5 +63,34 @@ export class ClientEntity extends IndexedEntity<Client> {
     portalUrl: '/portal/:clientId',
     status: 'pending',
     createdAt: 0,
+  };
+}
+// --- Project Entity ---
+export class ProjectEntity extends IndexedEntity<Project> {
+  static readonly entityName = "project";
+  static readonly indexName = "projects";
+  static readonly initialState: Project = {
+    id: '',
+    clientId: '',
+    title: '',
+    progress: 0,
+    deadline: null,
+    notes: '',
+    updatedAt: 0,
+  };
+}
+// --- Milestone Entity ---
+export class MilestoneEntity extends IndexedEntity<Milestone> {
+  static readonly entityName = "milestone";
+  static readonly indexName = "milestones";
+  static readonly initialState: Milestone = {
+    id: '',
+    projectId: '',
+    title: '',
+    description: '',
+    status: 'todo',
+    dueDate: null,
+    files: [],
+    updatedAt: 0,
   };
 }

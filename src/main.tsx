@@ -17,6 +17,9 @@ import ClientLoginPage from '@/pages/ClientLoginPage';
 import ClientDashboardPage from '@/pages/portal/ClientDashboardPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import ContentManagerPage from './pages/admin/ContentManagerPage';
+import LeadsClientsPage from './pages/admin/LeadsClientsPage';
+import ClientProjectsPageAdmin from './pages/admin/ClientProjectsPage';
+import ClientProjectsPage from './pages/portal/ClientProjectsPage';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -39,6 +42,16 @@ const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
   },
   {
+    path: "/admin/leads",
+    element: <ProtectedRoute><LeadsClientsPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/admin/clients/:clientId/projects",
+    element: <ProtectedRoute><ClientProjectsPageAdmin /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
     path: "/portal/login",
     element: <ClientLoginPage />,
     errorElement: <RouteErrorBoundary />,
@@ -46,6 +59,11 @@ const router = createBrowserRouter([
   {
     path: "/portal/:clientId",
     element: <ClientDashboardPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/portal/:clientId/projects",
+    element: <ClientProjectsPage />,
     errorElement: <RouteErrorBoundary />,
   },
 ]);
