@@ -295,8 +295,8 @@ const Footer = () => (
             <div className="mt-8 pt-8 border-t flex flex-col sm:flex-row justify-between items-center">
                 <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} AppChahiye. All rights reserved.</p>
                 <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-                    <a href="#" className="text-muted-foreground hover:text-foreground"><Instagram className="w-5 h-5" /></a>
-                    <a href="#" className="text-muted-foreground hover:text-foreground"><Facebook className="w-5 h-5" /></a>
+                    <a href="https://instagram.com/appchahiye" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Instagram className="w-5 h-5" /></a>
+                    <a href="https://facebook.com/appchahiye" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground"><Facebook className="w-5 h-5" /></a>
                 </div>
             </div>
         </div>
