@@ -15,6 +15,8 @@ import AdminLoginPage from '@/pages/AdminLoginPage';
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import ClientLoginPage from '@/pages/ClientLoginPage';
 import ClientDashboardPage from '@/pages/portal/ClientDashboardPage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import ContentManagerPage from './pages/admin/ContentManagerPage';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -28,10 +30,14 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <AdminDashboardPage />,
+    element: <ProtectedRoute><AdminDashboardPage /></ProtectedRoute>,
     errorElement: <RouteErrorBoundary />,
   },
-  // Add more admin routes here as needed
+  {
+    path: "/admin/content",
+    element: <ProtectedRoute><ContentManagerPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
   {
     path: "/portal/login",
     element: <ClientLoginPage />,
@@ -42,9 +48,7 @@ const router = createBrowserRouter([
     element: <ClientDashboardPage />,
     errorElement: <RouteErrorBoundary />,
   },
-  // Add more client portal routes here as needed
 ]);
-// Do not touch this code
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>

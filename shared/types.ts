@@ -3,22 +3,56 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
 }
-
-// Minimal real-world chat example types (shared by frontend and worker)
-export interface User {
+// --- Authentication Types ---
+export interface AuthUser {
   id: string;
+  email: string;
   name: string;
 }
-
-export interface Chat {
-  id: string;
-  title: string;
+export interface LoginResponse {
+  user: AuthUser;
+  token: string;
 }
-
-export interface ChatMessage {
-  id: string;
-  chatId: string;
-  userId: string;
+// --- Website Content Types ---
+export interface HeroContent {
+  headline: string;
+  subheadline: string;
+  imageUrl: string;
+}
+export interface StepContent {
+  title: string;
+  description: string;
+}
+export interface FeatureContent {
+  title: string;
+  description: string;
+}
+export interface PortfolioItem {
+  name: string;
+  image: string;
+}
+export interface PricingTier {
+  name: string;
+  price: string;
+  features: string[];
+  popular: boolean;
+}
+export interface Testimonial {
+  name: string;
+  company: string;
   text: string;
-  ts: number; // epoch millis
+  avatar: string;
+}
+export interface CtaContent {
+  headline: string;
+  subheadline: string;
+}
+export interface WebsiteContent {
+  hero: HeroContent;
+  howItWorks: StepContent[];
+  whyChooseUs: FeatureContent[];
+  portfolio: PortfolioItem[];
+  pricing: PricingTier[];
+  testimonials: Testimonial[];
+  finalCta: CtaContent;
 }

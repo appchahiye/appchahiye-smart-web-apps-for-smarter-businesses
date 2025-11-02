@@ -13,11 +13,10 @@ import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import type { WebsiteContent } from '@shared/types';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
-import { FileUpload } from '@/components/ui/file-upload';
 const heroSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   subheadline: z.string().min(1, 'Subheadline is required'),
-  imageUrl: z.string().min(1, 'Image is required'),
+  imageUrl: z.string().url('Must be a valid URL'),
 });
 const stepSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -29,7 +28,7 @@ const featureSchema = z.object({
 });
 const portfolioItemSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  image: z.string().min(1, 'Image is required'),
+  image: z.string().url('Must be a valid URL'),
 });
 const pricingTierSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -41,32 +40,20 @@ const testimonialSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   company: z.string().min(1, 'Company is required'),
   text: z.string().min(1, 'Text is required'),
-  avatar: z.string().min(1, 'Avatar is required'),
+  avatar: z.string().url('Must be a valid URL'),
 });
 const ctaSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   subheadline: z.string().min(1, 'Subheadline is required'),
 });
-const brandAssetsSchema = z.object({
-  logoUrl: z.string(),
-  faviconUrl: z.string().optional(),
-  primaryColor: z.string(),
-  secondaryColor: z.string(),
-});
-const seoMetadataSchema = z.object({
-  siteTitle: z.string(),
-  metaDescription: z.string(),
-});
 const contentSchema = z.object({
   hero: heroSchema,
-  howItWorks: z.array(stepSchema),
-  whyChooseUs: z.array(featureSchema),
+  howItWorks: z.array(stepSchema).length(3, 'There must be exactly 3 steps'),
+  whyChooseUs: z.array(featureSchema).length(4, 'There must be exactly 4 features'),
   portfolio: z.array(portfolioItemSchema),
   pricing: z.array(pricingTierSchema),
   testimonials: z.array(testimonialSchema),
   finalCta: ctaSchema,
-  brandAssets: brandAssetsSchema,
-  seoMetadata: seoMetadataSchema,
 });
 export default function ContentManagerPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -97,7 +84,7 @@ export default function ContentManagerPage() {
       });
       toast.success('Content updated successfully!');
     } catch (error) {
-      toast.error('Failed to save content.');
+      toast.error('Failed to update content.');
     } finally {
       setIsSaving(false);
     }
@@ -122,7 +109,7 @@ export default function ContentManagerPage() {
           </Button>
         </div>
         <Tabs defaultValue="hero">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-9 mb-4">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 mb-4">
             <TabsTrigger value="hero">Hero</TabsTrigger>
             <TabsTrigger value="howItWorks">How It Works</TabsTrigger>
             <TabsTrigger value="whyChooseUs">Features</TabsTrigger>
@@ -130,30 +117,24 @@ export default function ContentManagerPage() {
             <TabsTrigger value="pricing">Pricing</TabsTrigger>
             <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
             <TabsTrigger value="cta">Final CTA</TabsTrigger>
-            <TabsTrigger value="brand">Brand</TabsTrigger>
-            <TabsTrigger value="seo">SEO</TabsTrigger>
           </TabsList>
           <TabsContent value="hero">
             <Card>
               <CardHeader><CardTitle>Hero Section</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Headline</Label>
-                  <Input {...register('hero.headline')} />
+                  <Label htmlFor="hero.headline">Headline</Label>
+                  <Input id="hero.headline" {...register('hero.headline')} />
                   {errors.hero?.headline && <p className="text-red-500 text-sm mt-1">{errors.hero.headline.message}</p>}
                 </div>
                 <div>
-                  <Label>Subheadline</Label>
-                  <Textarea {...register('hero.subheadline')} />
+                  <Label htmlFor="hero.subheadline">Subheadline</Label>
+                  <Textarea id="hero.subheadline" {...register('hero.subheadline')} />
                   {errors.hero?.subheadline && <p className="text-red-500 text-sm mt-1">{errors.hero.subheadline.message}</p>}
                 </div>
                 <div>
-                  <Label>Image</Label>
-                  <Controller
-                    name="hero.imageUrl"
-                    control={control}
-                    render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} />}
-                  />
+                  <Label htmlFor="hero.imageUrl">Image URL</Label>
+                  <Input id="hero.imageUrl" {...register('hero.imageUrl')} />
                   {errors.hero?.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.hero.imageUrl.message}</p>}
                 </div>
               </CardContent>
@@ -171,12 +152,8 @@ export default function ContentManagerPage() {
                         <Input {...register(`portfolio.${index}.name`)} />
                       </div>
                       <div>
-                        <Label>Image</Label>
-                        <Controller
-                          name={`portfolio.${index}.image`}
-                          control={control}
-                          render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} />}
-                        />
+                        <Label>Image URL</Label>
+                        <Input {...register(`portfolio.${index}.image`)} />
                       </div>
                     </div>
                     <Button type="button" variant="destructive" size="icon" onClick={() => removePortfolio(index)}><Trash2 className="h-4 w-4" /></Button>
@@ -188,36 +165,7 @@ export default function ContentManagerPage() {
               </CardContent>
             </Card>
           </TabsContent>
-           <TabsContent value="testimonials">
-            <Card>
-              <CardHeader><CardTitle>Testimonials Section</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                {testimonialFields.map((field, index) => (
-                  <div key={field.id} className="border p-4 rounded-md space-y-2">
-                     <div className="flex justify-between items-center">
-                      <h3 className="font-semibold">Testimonial {index + 1}</h3>
-                      <Button type="button" variant="destructive" size="icon" onClick={() => removeTestimonial(index)}><Trash2 className="h-4 w-4" /></Button>
-                    </div>
-                    <div><Label>Name</Label><Input {...register(`testimonials.${index}.name`)} /></div>
-                    <div><Label>Company</Label><Input {...register(`testimonials.${index}.company`)} /></div>
-                    <div><Label>Text</Label><Textarea {...register(`testimonials.${index}.text`)} /></div>
-                    <div>
-                      <Label>Avatar</Label>
-                      <Controller
-                        name={`testimonials.${index}.avatar`}
-                        control={control}
-                        render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} className="h-24 w-24 rounded-full" />}
-                      />
-                    </div>
-                  </div>
-                ))}
-                <Button type="button" variant="outline" onClick={() => appendTestimonial({ name: '', company: '', text: '', avatar: '' })}>
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Testimonial
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          {/* Other tabs remain unchanged */}
+          {/* Other tabs would be implemented similarly */}
           <TabsContent value="howItWorks">
             <Card>
               <CardHeader><CardTitle>How It Works Section</CardTitle></CardHeader>
@@ -294,6 +242,28 @@ export default function ContentManagerPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          <TabsContent value="testimonials">
+            <Card>
+              <CardHeader><CardTitle>Testimonials Section</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                {testimonialFields.map((field, index) => (
+                  <div key={field.id} className="border p-4 rounded-md space-y-2">
+                     <div className="flex justify-between items-center">
+                      <h3 className="font-semibold">Testimonial {index + 1}</h3>
+                      <Button type="button" variant="destructive" size="icon" onClick={() => removeTestimonial(index)}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                    <div><Label>Name</Label><Input {...register(`testimonials.${index}.name`)} /></div>
+                    <div><Label>Company</Label><Input {...register(`testimonials.${index}.company`)} /></div>
+                    <div><Label>Text</Label><Textarea {...register(`testimonials.${index}.text`)} /></div>
+                    <div><Label>Avatar URL</Label><Input {...register(`testimonials.${index}.avatar`)} /></div>
+                  </div>
+                ))}
+                <Button type="button" variant="outline" onClick={() => appendTestimonial({ name: '', company: '', text: '', avatar: '' })}>
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Testimonial
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
           <TabsContent value="cta">
             <Card>
               <CardHeader><CardTitle>Final CTA Section</CardTitle></CardHeader>
@@ -305,40 +275,6 @@ export default function ContentManagerPage() {
                 <div>
                   <Label>Subheadline</Label>
                   <Textarea {...register('finalCta.subheadline')} />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="brand">
-            <Card>
-              <CardHeader><CardTitle>Brand Assets</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Logo URL</Label>
-                  <Input {...register('brandAssets.logoUrl')} />
-                </div>
-                <div>
-                  <Label>Primary Color</Label>
-                  <Input {...register('brandAssets.primaryColor')} />
-                </div>
-                <div>
-                  <Label>Secondary Color</Label>
-                  <Input {...register('brandAssets.secondaryColor')} />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="seo">
-            <Card>
-              <CardHeader><CardTitle>SEO Metadata</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Site Title</Label>
-                  <Input {...register('seoMetadata.siteTitle')} />
-                </div>
-                <div>
-                  <Label>Meta Description</Label>
-                  <Textarea {...register('seoMetadata.metaDescription')} />
                 </div>
               </CardContent>
             </Card>
