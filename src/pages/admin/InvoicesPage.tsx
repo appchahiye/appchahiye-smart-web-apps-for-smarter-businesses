@@ -21,7 +21,7 @@ import { Toaster, toast } from '@/components/ui/sonner';
 type ClientWithUser = Client & { user?: User };
 const invoiceFormSchema = z.object({
   clientId: z.string().min(1, 'Client is required'),
-  amount: z.coerce.number().positive(),
+  amount: z.coerce.number().positive({ message: "Amount must be a positive number." }),
 });
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 export default function InvoicesPage() {
@@ -33,7 +33,7 @@ export default function InvoicesPage() {
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       clientId: '',
-      amount: 0,
+      amount: undefined,
     },
   });
   const fetchInvoices = useCallback(() => {
@@ -104,15 +104,13 @@ export default function InvoicesPage() {
                 )} />
                 <FormField control={form.control} name="amount" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount ($)</FormLabel>
+                    <FormLabel>Amount (PKR)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.01"
                         placeholder="e.g., 999.99"
                         {...field}
-                        onChange={e => field.onChange(e.target.valueAsNumber)}
-                        value={field.value ?? ''}
                       />
                     </FormControl>
                     <FormMessage />
@@ -161,7 +159,7 @@ export default function InvoicesPage() {
                       <div className="font-medium">{invoice.clientName}</div>
                       <div className="text-sm text-muted-foreground">{invoice.clientCompany}</div>
                     </TableCell>
-                    <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                    <TableCell>PKR {invoice.amount.toFixed(2)}</TableCell>
                     <TableCell><Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>{invoice.status}</Badge></TableCell>
                     <TableCell>{format(new Date(invoice.issuedAt), 'PPP')}</TableCell>
                     <TableCell className="text-right">
