@@ -1,7 +1,8 @@
 import { Entity, IndexedEntity } from "./core-utils";
 import type { WebsiteContent, User, Client, Project, Milestone, Invoice, Message } from "@shared/types";
 import type { Env } from './core-utils';
-const MOCK_WEBSITE_CONTENT: WebsiteContent = { hero: { headline: "Your Business, Simplified.", subheadline: "We build smart web apps that help your business run smoother, faster, and smarter.", imageUrl: "https://framerusercontent.com/images/3X5p25sTzE2bH5L3u3Ceo8nZpU.png" },
+const MOCK_WEBSITE_CONTENT: WebsiteContent = {
+  hero: { headline: "Your Business, Simplified.", subheadline: "We build smart web apps that help your business run smoother, faster, and smarter.", imageUrl: "https://framerusercontent.com/images/3X5p25sTzE2bH5L3u3Ceo8nZpU.png" },
   howItWorks: [
   { title: "Tell us your needs", description: "Describe your business process and what you want to achieve." },
   { title: "We design & build", description: "Our experts craft a custom web application tailored for you." },
@@ -26,6 +27,15 @@ const MOCK_WEBSITE_CONTENT: WebsiteContent = { hero: { headline: "Your Business,
   finalCta: {
     headline: "Ready to simplify your business?",
     subheadline: "Let's build the perfect web app to streamline your operations and fuel your growth."
+  },
+  brandAssets: {
+    logoUrl: "",
+    primaryColor: "#2F80ED",
+    secondaryColor: "#5B2EFF"
+  },
+  seoMetadata: {
+    siteTitle: "AppChahiye: Smart Web Apps for Smarter Businesses",
+    metaDescription: "We build custom web apps that make business operations simpler, faster, and smarter."
   }
 };
 export class WebsiteContentEntity extends Entity<WebsiteContent> {
