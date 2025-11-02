@@ -31,7 +31,7 @@ const Section = ({ children, className, ...props }: React.ComponentProps<typeof 
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, amount: 0.3 }}
     transition={{ duration: 0.6, ease: "easeOut" }}
-    className={cn("py-20 md:py-28 lg:py-32", className)}
+    className={cn("py-24 lg:py-32", className)}
     {...props}
   >
     {children}
@@ -94,7 +94,7 @@ const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
 const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent['hero'], onGetStartedClick: () => void }) => {
   const handleSeeExamples = () => document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth' });
   return (
-    <section className="relative pt-40 pb-20 md:pt-48 md:pb-32 text-center overflow-hidden">
+    <section className="relative pt-40 pb-24 md:pt-48 lg:pb-32 text-center overflow-hidden">
       <div className="absolute top-0 left-0 -z-10 h-full w-full bg-gradient-soft-light dark:bg-gradient-soft-dark"></div>
       <div className="glow-orb w-96 h-96 bg-deep-violet/50 -top-40 -left-40 animate-blob-spin"></div>
       <div className="glow-orb w-96 h-96 bg-electric-blue/50 -bottom-40 -right-40 animate-blob-spin [animation-delay:5s]"></div>
