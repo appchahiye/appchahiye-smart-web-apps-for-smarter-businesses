@@ -440,7 +440,7 @@ export function HomePage() {
   const handleGetStartedClick = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
   return (
-    <div className="bg-background text-foreground">
+    <div className="bg-background text-foreground overflow-x-hidden">
       <Toaster richColors />
       <GetStartedModal isOpen={isModalOpen} onClose={handleCloseModal} />
       <Header onGetStartedClick={handleGetStartedClick} />
