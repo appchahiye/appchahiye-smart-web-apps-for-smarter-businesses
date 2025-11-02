@@ -22,7 +22,7 @@ import { Toaster, toast } from '@/components/ui/sonner';
 type ClientWithUser = Client & { user?: User };
 const invoiceFormSchema = z.object({
   clientId: z.string().min(1, 'Client is required'),
-  amount: z.coerce.number().gt(0, { message: "Amount must be a positive number." }),
+  amount: z.number().gt(0, { message: "Amount must be a positive number." }),
 });
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 export default function InvoicesPage() {
