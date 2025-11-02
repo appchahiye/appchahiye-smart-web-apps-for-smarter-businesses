@@ -32,13 +32,13 @@ export default function ClientLoginPage() {
             const result = await response.json();
 
             if (!response.ok) {
-                throw new Error(result.message || 'Login failed. Please check your credentials.');
+                throw new Error(result.error || 'Login failed. Please check your credentials.');
             }
 
             toast.success('Login successful! Redirecting to your portal.');
             // The user.id from the response is the clientId for the portal URL
-            if (result.user && result.user.id) {
-                navigate(`/portal/${result.user.id}`);
+            if (result.data && result.data.user && result.data.user.id) {
+                navigate(`/portal/${result.data.user.id}`);
             } else {
                 throw new Error('Login response is missing user data.');
             }
