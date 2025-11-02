@@ -30,7 +30,7 @@ const milestoneSchema = z.object({
   description: z.string().optional(),
   status: z.enum(['todo', 'in_progress', 'completed']),
   dueDate: z.date().optional().nullable(),
-  files: z.array(z.string().url("Must be a valid URL.")),
+  files: z.array(z.object({ value: z.string().url("Must be a valid URL.") })),
 });
 type ProjectFormValues = z.infer<typeof projectSchema>;
 type MilestoneFormValues = z.infer<typeof milestoneSchema>;
@@ -54,7 +54,7 @@ const MilestoneModal = ({
       description: milestone?.description || '',
       status: milestone?.status || 'todo',
       dueDate: milestone?.dueDate ? new Date(milestone.dueDate) : undefined,
-      files: milestone?.files || [],
+      files: milestone?.files?.map(f => ({ value: f })) || [],
     },
   });
   const { fields, append, remove } = useFieldArray({
@@ -63,7 +63,7 @@ const MilestoneModal = ({
   });
   const handleAddFile = () => {
     if (fileUrl && z.string().url().safeParse(fileUrl).success) {
-      append(fileUrl);
+      append({ value: fileUrl });
       setFileUrl('');
     } else {
       toast.error('Please enter a valid URL.');
@@ -73,6 +73,7 @@ const MilestoneModal = ({
     const payload = {
       ...values,
       dueDate: values.dueDate ? values.dueDate.getTime() : null,
+      files: values.files.map(f => f.value), // Map back to string array for API
     };
     try {
       if (milestone) {
@@ -130,7 +131,7 @@ const MilestoneModal = ({
               <div className="space-y-2 mt-2">
                 {fields.map((field, index) => (
                   <div key={field.id} className="flex items-center justify-between text-sm bg-muted p-2 rounded-md">
-                    <a href={form.getValues(`files.${index}`)} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{form.getValues(`files.${index}`)}</a>
+                    <a href={field.value} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{field.value}</a>
                     <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><X className="h-4 w-4" /></Button>
                   </div>
                 ))}

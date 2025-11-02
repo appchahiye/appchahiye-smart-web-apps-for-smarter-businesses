@@ -52,7 +52,9 @@ const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
             ))}
           </nav>
           <div className="hidden md:block">
-            <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity">Get Your App</Button>
+            <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+              Get Your App <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
           <div className="md:hidden">
             <Sheet>
