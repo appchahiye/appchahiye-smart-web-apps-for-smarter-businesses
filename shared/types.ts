@@ -63,6 +63,19 @@ export interface Milestone {
 export interface ProjectWithMilestones extends Project {
   milestones: Milestone[];
 }
+// --- Invoicing Types ---
+export interface Invoice {
+  id: string;
+  clientId: string;
+  amount: number;
+  status: 'pending' | 'paid';
+  pdf_url: string; // For mock download
+  issuedAt: number; // epoch millis
+}
+export interface InvoiceWithClientInfo extends Invoice {
+  clientName: string;
+  clientCompany: string;
+}
 // --- Website Content Types ---
 export interface HeroContent {
   headline: string;

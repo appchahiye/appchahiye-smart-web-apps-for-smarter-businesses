@@ -4,23 +4,27 @@ import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api-client';
-import type { ProjectWithMilestones, Milestone } from '@shared/types';
+import type { ProjectWithMilestones, Milestone, Invoice } from '@shared/types';
 import { formatDistanceToNow } from 'date-fns';
 export default function ClientDashboardPage() {
   const { clientId } = useParams<{ clientId: string }>();
   const [projects, setProjects] = useState<ProjectWithMilestones[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     if (clientId) {
-      api<ProjectWithMilestones[]>(`/api/portal/${clientId}/projects`)
-        .then(data => {
-          setProjects(data);
-          setIsLoading(false);
-        })
-        .catch(err => {
-          console.error("Failed to fetch projects:", err);
-          setIsLoading(false);
-        });
+      setIsLoading(true);
+      Promise.all([
+        api<ProjectWithMilestones[]>(`/api/portal/${clientId}/projects`),
+        api<Invoice[]>(`/api/portal/${clientId}/invoices`),
+      ]).then(([projectData, invoiceData]) => {
+        setProjects(projectData);
+        setInvoices(invoiceData);
+      }).catch(err => {
+        console.error("Failed to fetch dashboard data:", err);
+      }).finally(() => {
+        setIsLoading(false);
+      });
     }
   }, [clientId]);
   const overallProgress = useMemo(() => {
@@ -36,6 +40,11 @@ export default function ClientDashboardPage() {
       .sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0));
     return upcoming[0] || null;
   }, [projects]);
+  const pendingInvoiceTotal = useMemo(() => {
+    return invoices
+      .filter(inv => inv.status === 'pending')
+      .reduce((sum, inv) => sum + inv.amount, 0);
+  }, [invoices]);
   return (
     <ClientPortalLayout>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -75,8 +84,19 @@ export default function ClientDashboardPage() {
                     <CardTitle>Invoice Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl font-bold">$0.00</p>
-                    <p className="text-xs text-muted-foreground">No pending invoices</p>
+                    {isLoading ? (
+                        <>
+                            <Skeleton className="h-8 w-24" />
+                            <Skeleton className="h-4 w-32 mt-2" />
+                        </>
+                    ) : (
+                        <>
+                            <p className="text-2xl font-bold">${pendingInvoiceTotal.toFixed(2)}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {pendingInvoiceTotal > 0 ? 'Total pending amount' : 'No pending invoices'}
+                            </p>
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </div>

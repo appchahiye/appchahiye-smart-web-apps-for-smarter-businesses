@@ -1,5 +1,5 @@
 import { Entity, IndexedEntity } from "./core-utils";
-import type { WebsiteContent, User, Client, Project, Milestone } from "@shared/types";
+import type { WebsiteContent, User, Client, Project, Milestone, Invoice } from "@shared/types";
 import type { Env } from './core-utils';
 const MOCK_WEBSITE_CONTENT: WebsiteContent = { hero: { headline: "Your Business, Simplified.", subheadline: "We build smart web apps that help your business run smoother, faster, and smarter.", imageUrl: "https://framerusercontent.com/images/3X5p25sTzE2bH5L3u3Ceo8nZpU.png" },
   howItWorks: [
@@ -92,5 +92,18 @@ export class MilestoneEntity extends IndexedEntity<Milestone> {
     dueDate: null,
     files: [],
     updatedAt: 0,
+  };
+}
+// --- Invoice Entity ---
+export class InvoiceEntity extends IndexedEntity<Invoice> {
+  static readonly entityName = "invoice";
+  static readonly indexName = "invoices";
+  static readonly initialState: Invoice = {
+    id: '',
+    clientId: '',
+    amount: 0,
+    status: 'pending',
+    pdf_url: '',
+    issuedAt: 0,
   };
 }

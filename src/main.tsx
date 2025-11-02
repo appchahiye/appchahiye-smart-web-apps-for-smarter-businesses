@@ -20,6 +20,8 @@ import ContentManagerPage from './pages/admin/ContentManagerPage';
 import LeadsClientsPage from './pages/admin/LeadsClientsPage';
 import ClientProjectsPageAdmin from './pages/admin/ClientProjectsPage';
 import ClientProjectsPage from './pages/portal/ClientProjectsPage';
+import AdminInvoicesPage from './pages/admin/InvoicesPage';
+import ClientInvoicesPage from './pages/portal/ClientInvoicesPage';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -52,6 +54,11 @@ const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
   },
   {
+    path: "/admin/invoices",
+    element: <ProtectedRoute><AdminInvoicesPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
     path: "/portal/login",
     element: <ClientLoginPage />,
     errorElement: <RouteErrorBoundary />,
@@ -64,6 +71,11 @@ const router = createBrowserRouter([
   {
     path: "/portal/:clientId/projects",
     element: <ClientProjectsPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/portal/:clientId/invoices",
+    element: <ClientInvoicesPage />,
     errorElement: <RouteErrorBoundary />,
   },
 ]);
