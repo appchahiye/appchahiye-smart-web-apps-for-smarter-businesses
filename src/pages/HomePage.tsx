@@ -206,8 +206,7 @@ const WhyChooseUsSection = ({ content }: { content?: WebsiteContent['whyChooseUs
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.5 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(91, 46, 255, 0.2)' }}
-                className="h-full rounded-2xl"
+                className="h-full rounded-2xl transition-shadow duration-300 hover:shadow-[0_10px_25px_-5px_rgba(91,46,255,0.2)]"
               >
                 <CardContent className="p-8">
                   <div className="inline-flex items-center justify-center w-12 h-12 mb-6 rounded-lg bg-gradient-brand text-white"><Icon className="w-6 h-6" /></div>
