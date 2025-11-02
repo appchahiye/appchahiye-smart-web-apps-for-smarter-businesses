@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AdminLayout } from "@/components/layout/AdminLayout";
@@ -11,7 +11,6 @@ import { api } from '@/lib/api-client';
 import type { WebsiteContent } from '@shared/types';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { Loader2 } from 'lucide-react';
-import { FileUpload } from '@/components/ui/file-upload';
 const settingsSchema = z.object({
   brandAssets: z.object({
     logoUrl: z.string().min(1, 'Logo is required'),
@@ -29,7 +28,7 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [fullContent, setFullContent] = useState<WebsiteContent | null>(null);
-  const { control, register, handleSubmit, reset, formState: { errors } } = useForm<SettingsFormValues>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
   });
   useEffect(() => {
@@ -96,25 +95,15 @@ export default function SettingsPage() {
               <CardDescription>Manage your company's logo and brand colors.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label>Logo</Label>
-                  <Controller
-                    name="brandAssets.logoUrl"
-                    control={control}
-                    render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} />}
-                  />
-                  {errors.brandAssets?.logoUrl && <p className="text-sm text-red-500 mt-1">{errors.brandAssets.logoUrl.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label>Favicon</Label>
-                   <Controller
-                    name="brandAssets.faviconUrl"
-                    control={control}
-                    render={({ field }) => <FileUpload value={field.value || ''} onChange={field.onChange} />}
-                  />
-                  {errors.brandAssets?.faviconUrl && <p className="text-sm text-red-500 mt-1">{errors.brandAssets.faviconUrl.message}</p>}
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="logoUrl">Logo URL</Label>
+                <Input id="logoUrl" {...register('brandAssets.logoUrl')} placeholder="https://example.com/logo.png" />
+                {errors.brandAssets?.logoUrl && <p className="text-sm text-red-500 mt-1">{errors.brandAssets.logoUrl.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="faviconUrl">Favicon URL</Label>
+                <Input id="faviconUrl" {...register('brandAssets.faviconUrl')} placeholder="https://example.com/favicon.ico" />
+                {errors.brandAssets?.faviconUrl && <p className="text-sm text-red-500 mt-1">{errors.brandAssets.faviconUrl.message}</p>}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                 <div className="space-y-2">
