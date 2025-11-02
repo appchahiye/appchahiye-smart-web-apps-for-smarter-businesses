@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,7 +25,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api-client';
-import type { WebsiteContent } from '@shared/types';
+import type { WebsiteContent, PortfolioItem } from '@shared/types';
 import { GetStartedModal } from '@/components/GetStartedModal';
 import { Toaster, toast } from '@/components/ui/sonner';
 const navLinks = [
@@ -78,36 +79,41 @@ const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
     </header>
   );
 };
-const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent['hero'], onGetStartedClick: () => void }) => (
-  <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 text-center overflow-hidden">
-    <div className="absolute inset-0 bg-gradient-to-br from-electric-blue/20 via-deep-violet/20 to-background -z-10"></div>
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-        {content ? (
-          <>
-            <h1 className="text-4xl md:text-6xl font-bold font-display tracking-tight text-foreground" dangerouslySetInnerHTML={{ __html: content.headline.replace('Simplified.', '<span class="text-transparent bg-clip-text bg-gradient-brand">Simplified.</span>') }}></h1>
-            <p className="mt-6 text-lg md:text-xl max-w-3xl mx-auto text-muted-foreground">{content.subheadline}</p>
-          </>
-        ) : (
-          <>
-            <Skeleton className="h-16 w-3/4 mx-auto" />
-            <Skeleton className="h-6 w-1/2 mx-auto mt-6" />
-          </>
-        )}
-        <div className="mt-10 flex justify-center gap-4">
-          <Button onClick={onGetStartedClick} size="lg" className="bg-gradient-brand text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg hover:shadow-xl">Get Started</Button>
-          <Button size="lg" variant="outline" className="px-8 py-3">See Examples</Button>
-        </div>
-      </motion.div>
-      <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.3 }} className="mt-16">
-        <div className="relative mx-auto w-full max-w-4xl">
-          <div className="absolute -inset-2 rounded-xl bg-gradient-brand opacity-20 blur-2xl"></div>
-          {content ? <img src={content.imageUrl} alt="Dashboard Mockup" className="relative rounded-xl shadow-2xl border" /> : <Skeleton className="w-full aspect-video rounded-xl" />}
-        </div>
-      </motion.div>
-    </div>
-  </section>
-);
+const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent['hero'], onGetStartedClick: () => void }) => {
+  const handleSeeExamples = () => {
+    document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth' });
+  };
+  return (
+    <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 text-center overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-electric-blue/20 via-deep-violet/20 to-background -z-10"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+          {content ? (
+            <>
+              <h1 className="text-4xl md:text-6xl font-bold font-display tracking-tight text-foreground" dangerouslySetInnerHTML={{ __html: content.headline.replace('Simplified.', '<span class="text-transparent bg-clip-text bg-gradient-brand">Simplified.</span>') }}></h1>
+              <p className="mt-6 text-lg md:text-xl max-w-3xl mx-auto text-muted-foreground">{content.subheadline}</p>
+            </>
+          ) : (
+            <>
+              <Skeleton className="h-16 w-3/4 mx-auto" />
+              <Skeleton className="h-6 w-1/2 mx-auto mt-6" />
+            </>
+          )}
+          <div className="mt-10 flex justify-center gap-4">
+            <Button onClick={onGetStartedClick} size="lg" className="bg-gradient-brand text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg hover:shadow-xl">Get Started</Button>
+            <Button onClick={handleSeeExamples} size="lg" variant="outline" className="px-8 py-3">See Examples</Button>
+          </div>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.3 }} className="mt-16">
+          <div className="relative mx-auto w-full max-w-4xl">
+            <div className="absolute -inset-2 rounded-xl bg-gradient-brand opacity-20 blur-2xl"></div>
+            {content ? <img src={content.imageUrl} alt="Dashboard Mockup" className="relative rounded-xl shadow-2xl border" /> : <Skeleton className="w-full aspect-video rounded-xl" />}
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
 const HowItWorksSection = ({ content }: { content?: WebsiteContent['howItWorks'] }) => {
     const icons = [Workflow, Cpu, Cloud];
     return (
@@ -182,15 +188,36 @@ const PortfolioSection = ({ content }: { content?: WebsiteContent['portfolio'] }
             </div>
             <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 gap-8">
                 {(content || Array(4).fill(null)).map((project, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.5, delay: index * 0.1 }} className="group relative overflow-hidden rounded-xl aspect-video">
-                        {project ? (
-                            <>
-                                <img src={project.image} alt={project.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
-                                <div className="absolute bottom-0 left-0 p-6"><h3 className="text-white text-2xl font-bold">{project.name}</h3></div>
-                            </>
-                        ) : <Skeleton className="w-full h-full" />}
-                    </motion.div>
+                    <Dialog key={index}>
+                        <DialogTrigger asChild>
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.5 }}
+                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                                className="group relative overflow-hidden rounded-xl aspect-video cursor-pointer"
+                            >
+                                {project ? (
+                                    <>
+                                        <img src={project.image} alt={project.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
+                                        <div className="absolute bottom-0 left-0 p-6"><h3 className="text-white text-2xl font-bold">{project.name}</h3></div>
+                                    </>
+                                ) : <Skeleton className="w-full h-full" />}
+                            </motion.div>
+                        </DialogTrigger>
+                        {project && (
+                            <DialogContent className="sm:max-w-3xl">
+                                <DialogHeader>
+                                    <DialogTitle className="text-2xl">{project.name}</DialogTitle>
+                                    <DialogDescription>{project.description || "A custom web application built to streamline business operations."}</DialogDescription>
+                                </DialogHeader>
+                                <div className="mt-4">
+                                    <img src={project.image} alt={project.name} className="w-full rounded-lg" />
+                                </div>
+                            </DialogContent>
+                        )}
+                    </Dialog>
                 ))}
             </div>
         </div>

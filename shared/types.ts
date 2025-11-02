@@ -127,6 +127,7 @@ export interface FeatureContent {
 export interface PortfolioItem {
   name: string;
   image: string;
+  description?: string;
 }
 export interface PricingTier {
   name: string;
@@ -174,4 +175,22 @@ export interface FormSubmission {
   projectDescription: string;
   features: string;
   submittedAt: number; // epoch millis
+}
+// --- Admin Dashboard & Analytics Types ---
+export interface AdminDashboardStats {
+  totalLeads: number;
+  activeClients: number;
+  projectsInProgress: number;
+  conversionRate: number; // as a percentage
+}
+export interface AnalyticsData {
+  leadsPerMonth: { name: string; leads: number }[];
+  projectCompletionTimes: { name: string; time: number }[]; // time in days
+}
+// --- Client Portal Activity Feed ---
+export interface ActivityItem {
+  id: string;
+  type: 'project_created' | 'milestone_updated' | 'milestone_created';
+  text: string;
+  timestamp: number; // epoch millis
 }
