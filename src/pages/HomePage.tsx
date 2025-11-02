@@ -103,8 +103,8 @@ const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent[
         </motion.div>
         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.3 }} className="mt-16">
           <div className="relative mx-auto w-full max-w-4xl">
-            <div className="absolute -inset-2 rounded-xl bg-gradient-brand opacity-20 blur-2xl"></div>
-            {content ? <img src={content.imageUrl} alt="Dashboard Mockup" className="relative rounded-xl shadow-2xl border" /> : <Skeleton className="w-full aspect-video rounded-xl" />}
+            <div className="absolute -inset-2 rounded-xl bg-gradient-brand opacity-10 blur-xl"></div>
+            {content ? <img src={content.imageUrl} alt="Dashboard Mockup" className="relative rounded-xl shadow-lg border" /> : <Skeleton className="w-full aspect-video rounded-xl" />}
           </div>
         </motion.div>
       </div>
