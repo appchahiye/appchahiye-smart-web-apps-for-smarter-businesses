@@ -62,29 +62,33 @@ const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
     <header className={cn('fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-border', scrolled ? 'bg-background/80 backdrop-blur-lg' : 'bg-transparent')}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <a href="/" aria-label="Homepage"><AppLogo /></a>
-          <nav className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <a key={link.name} href={link.href} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                {link.name}
-              </a>
-            ))}
-          </nav>
-          <div className="hidden md:block">
-            <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity">
-              Get Your App <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-10">
+            <a href="/" aria-label="Homepage"><AppLogo /></a>
+            <nav className="hidden md:flex items-center space-x-8">
+              {navLinks.map((link) => (
+                <a key={link.name} href={link.href} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  {link.name}
+                </a>
+              ))}
+            </nav>
           </div>
-          <div className="md:hidden">
-            <Sheet>
-              <SheetTrigger asChild><Button variant="ghost" size="icon"><Menu /></Button></SheetTrigger>
-              <SheetContent>
-                <div className="flex flex-col space-y-6 pt-10">
-                  {navLinks.map((link) => <a key={link.name} href={link.href} className="text-lg font-medium">{link.name}</a>)}
-                  <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white">Get Your App</Button>
-                </div>
-              </SheetContent>
-            </Sheet>
+          <div className="flex items-center">
+            <div className="hidden md:block">
+              <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                Get Your App <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+            <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild><Button variant="ghost" size="icon"><Menu /></Button></SheetTrigger>
+                <SheetContent>
+                  <div className="flex flex-col space-y-6 pt-10">
+                    {navLinks.map((link) => <a key={link.name} href={link.href} className="text-lg font-medium">{link.name}</a>)}
+                    <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white">Get Your App</Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </div>
