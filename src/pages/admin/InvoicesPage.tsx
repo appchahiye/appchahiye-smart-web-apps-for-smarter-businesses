@@ -21,10 +21,7 @@ import { Toaster, toast } from '@/components/ui/sonner';
 type ClientWithUser = Client & { user?: User };
 const invoiceFormSchema = z.object({
   clientId: z.string().min(1, 'Client is required'),
-  amount: z.coerce.number({
-    required_error: "Amount is required.",
-    invalid_type_error: "Amount must be a number.",
-  }).positive({ message: "Amount must be a positive number." }),
+  amount: z.coerce.number().positive(),
 });
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 export default function InvoicesPage() {
@@ -36,7 +33,7 @@ export default function InvoicesPage() {
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       clientId: '',
-      amount: undefined,
+      amount: 0,
     },
   });
   const fetchInvoices = useCallback(() => {

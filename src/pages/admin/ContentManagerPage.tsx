@@ -57,8 +57,8 @@ const seoMetadataSchema = z.object({
 });
 const contentSchema = z.object({
   hero: heroSchema,
-  howItWorks: z.array(stepSchema).length(3, 'There must be exactly 3 steps'),
-  whyChooseUs: z.array(featureSchema).length(4, 'There must be exactly 4 features'),
+  howItWorks: z.array(stepSchema),
+  whyChooseUs: z.array(featureSchema),
   portfolio: z.array(portfolioItemSchema),
   pricing: z.array(pricingTierSchema),
   testimonials: z.array(testimonialSchema),
@@ -75,6 +75,13 @@ export default function ContentManagerPage() {
   const { fields: portfolioFields, append: appendPortfolio, remove: removePortfolio } = useFieldArray({ control, name: "portfolio" });
   const { fields: pricingFields, append: appendPricing, remove: removePricing } = useFieldArray({ control, name: "pricing" });
   const { fields: testimonialFields, append: appendTestimonial, remove: removeTestimonial } = useFieldArray({ control, name: "testimonials" });
+
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log('Form validation errors:', errors);
+    }
+  }, [errors]);
+
   useEffect(() => {
     api<WebsiteContent>('/api/content')
       .then(data => {
@@ -89,6 +96,7 @@ export default function ContentManagerPage() {
 
 
   const onSubmit = async (data: WebsiteContent) => {
+    console.log('Submitting data:', data);
     setIsSaving(true);
     try {
       await api('/api/content', {
