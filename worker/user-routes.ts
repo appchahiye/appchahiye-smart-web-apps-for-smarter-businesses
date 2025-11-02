@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity } from "./entities";
+import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity, FormSubmissionEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload } from "@shared/types";
+import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
 // Generates a random, memorable password.
@@ -382,6 +382,30 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await contentEntity.save(newContent);
     console.log('Content saved successfully.');
     return ok(c, { message: 'Content updated successfully' });
+  });
+  // --- Form Submission ---
+  app.post('/api/forms/submit', async (c) => {
+    const body = await c.req.json<Omit<FormSubmission, 'id' | 'submittedAt'>>();
+    if (!body.name || !body.email || !body.projectDescription) {
+      return bad(c, 'Missing required fields');
+    }
+    try {
+      const newSubmission: FormSubmission = {
+        id: crypto.randomUUID(),
+        ...body,
+        submittedAt: Date.now(),
+      };
+      await FormSubmissionEntity.create(c.env, newSubmission);
+      return ok(c, { message: 'Form submitted successfully!' });
+    } catch (error) {
+      console.error('Form submission failed:', error);
+      return bad(c, 'An error occurred during submission.');
+    }
+  });
+  app.get('/api/admin/forms', async (c) => {
+    const { items } = await FormSubmissionEntity.list(c.env);
+    items.sort((a, b) => b.submittedAt - a.submittedAt);
+    return ok(c, items);
   });
   // --- DELETE Endpoints ---
   app.delete('/api/admin/invoices/:invoiceId', async (c) => {

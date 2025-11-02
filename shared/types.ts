@@ -165,3 +165,13 @@ export interface WebsiteContent {
   brandAssets: BrandAssets;
   seoMetadata: SeoMetadata;
 }
+// --- Form Submission Type ---
+export interface FormSubmission {
+  id: string;
+  name: string;
+  email: string;
+  company: string;
+  projectDescription: string;
+  features: string;
+  submittedAt: number; // epoch millis
+}
