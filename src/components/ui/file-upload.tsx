@@ -26,7 +26,8 @@ export function FileUpload({ value, onChange, className }: FileUploadProps) {
         onChange(response.url);
         toast.success('File uploaded successfully!');
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'File upload failed.');
+        const errorMessage = error instanceof Error ? error.message : 'File upload failed. Please try again.';
+        toast.error(errorMessage);
       } finally {
         setIsUploading(false);
       }
