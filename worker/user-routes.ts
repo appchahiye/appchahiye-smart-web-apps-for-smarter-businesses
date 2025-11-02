@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { WebsiteContentEntity, UserEntity, ClientEntity } from "./entities";
-import { ok, bad } from './core-utils';
-import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User } from "@shared/types";
+import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity } from "./entities";
+import { ok, bad, notFound } from './core-utils';
+import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
 // Generates a random, memorable password.
@@ -56,7 +56,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         passwordHash,
       };
       await UserEntity.create(c.env, newUser);
-      const newClient = {
+      const newClient: Client = {
         id: userId, // Client ID is the same as User ID for simplicity
         userId,
         company,
@@ -76,6 +76,86 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       console.error('Registration failed:', error);
       return bad(c, 'An error occurred during registration.');
     }
+  });
+  // --- Admin: Client & Project Management ---
+  app.get('/api/admin/clients', async (c) => {
+    const { items: clients } = await ClientEntity.list(c.env);
+    const { items: users } = await UserEntity.list(c.env);
+    const usersById = new Map(users.map(u => [u.id, u]));
+    const clientsWithUsers = clients.map(client => ({
+      ...client,
+      user: usersById.get(client.userId)
+    }));
+    return ok(c, clientsWithUsers);
+  });
+  app.get('/api/admin/clients/:clientId/projects', async (c) => {
+    const { clientId } = c.req.param();
+    const { items: allProjects } = await ProjectEntity.list(c.env);
+    const clientProjects = allProjects.filter(p => p.clientId === clientId);
+    return ok(c, clientProjects);
+  });
+  app.post('/api/admin/clients/:clientId/projects', async (c) => {
+    const { clientId } = c.req.param();
+    const { title } = await c.req.json<{ title: string }>();
+    if (!title) return bad(c, 'Title is required');
+    const newProject: Project = {
+      id: crypto.randomUUID(),
+      clientId,
+      title,
+      progress: 0,
+      deadline: null,
+      notes: '',
+      updatedAt: Date.now(),
+    };
+    await ProjectEntity.create(c.env, newProject);
+    return ok(c, newProject);
+  });
+  app.put('/api/admin/projects/:projectId', async (c) => {
+    const { projectId } = c.req.param();
+    const updates = await c.req.json<Partial<Project>>();
+    const projectEntity = new ProjectEntity(c.env, projectId);
+    if (!(await projectEntity.exists())) return notFound(c);
+    await projectEntity.patch({ ...updates, updatedAt: Date.now() });
+    return ok(c, await projectEntity.getState());
+  });
+  app.post('/api/admin/projects/:projectId/milestones', async (c) => {
+    const { projectId } = c.req.param();
+    const { title, description } = await c.req.json<{ title: string; description: string }>();
+    if (!title) return bad(c, 'Title is required');
+    const newMilestone: Milestone = {
+      id: crypto.randomUUID(),
+      projectId,
+      title,
+      description,
+      status: 'todo',
+      dueDate: null,
+      files: [],
+      updatedAt: Date.now(),
+    };
+    await MilestoneEntity.create(c.env, newMilestone);
+    return ok(c, newMilestone);
+  });
+  app.put('/api/admin/milestones/:milestoneId', async (c) => {
+    const { milestoneId } = c.req.param();
+    const updates = await c.req.json<Partial<Milestone>>();
+    const milestoneEntity = new MilestoneEntity(c.env, milestoneId);
+    if (!(await milestoneEntity.exists())) return notFound(c);
+    await milestoneEntity.patch({ ...updates, updatedAt: Date.now() });
+    return ok(c, await milestoneEntity.getState());
+  });
+  // --- Client Portal Data ---
+  app.get('/api/portal/:clientId/projects', async (c) => {
+    const { clientId } = c.req.param();
+    const { items: allProjects } = await ProjectEntity.list(c.env);
+    const { items: allMilestones } = await MilestoneEntity.list(c.env);
+    const clientProjects = allProjects.filter(p => p.clientId === clientId);
+    const projectsWithMilestones: ProjectWithMilestones[] = clientProjects.map(project => ({
+      ...project,
+      milestones: allMilestones
+        .filter(m => m.projectId === project.id)
+        .sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0)),
+    }));
+    return ok(c, projectsWithMilestones);
   });
   // --- Website Content Management ---
   app.get('/api/content', async (c) => {

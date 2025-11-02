@@ -40,6 +40,29 @@ export interface LoginResponse {
   };
   token: string;
 }
+// --- Project Management Types ---
+export interface Project {
+  id: string;
+  clientId: string;
+  title: string;
+  progress: number; // 0-100
+  deadline: number | null; // epoch millis
+  notes: string;
+  updatedAt: number; // epoch millis
+}
+export interface Milestone {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string;
+  status: 'todo' | 'in_progress' | 'completed';
+  dueDate: number | null; // epoch millis
+  files: string[]; // Array of URLs
+  updatedAt: number; // epoch millis
+}
+export interface ProjectWithMilestones extends Project {
+  milestones: Milestone[];
+}
 // --- Website Content Types ---
 export interface HeroContent {
   headline: string;
