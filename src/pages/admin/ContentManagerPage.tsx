@@ -1,4 +1,4 @@
-import React, a, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -47,7 +47,7 @@ const ctaSchema = z.object({
   subheadline: z.string().min(1, 'Subheadline is required'),
 });
 const brandAssetsSchema = z.object({
-  logoUrl: z.string().url().or(z.literal('')),
+  logoUrl: z.string().url('Must be a valid URL'),
   primaryColor: z.string(),
   secondaryColor: z.string(),
 });
