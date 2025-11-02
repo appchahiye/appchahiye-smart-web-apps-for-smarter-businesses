@@ -55,6 +55,12 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!name || !email || !company || !projectType) {
       return bad(c, 'Missing required fields');
     }
+
+    const { items: users } = await UserEntity.list(c.env);
+    if (users.some(u => u.email === email)) {
+      return bad(c, 'A user with this email already exists.');
+    }
+
     try {
       const userId = crypto.randomUUID();
       const password_plaintext = generatePassword();
@@ -88,6 +94,43 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       return bad(c, 'An error occurred during registration.');
     }
   });
+
+  // --- Client Login ---
+  app.post('/api/clients/login', async (c) => {
+    const { email, password } = await c.req.json<{ email: string; password: string }>();
+    if (!email || !password) {
+      return bad(c, 'Email and password are required');
+    }
+
+    const { items: users } = await UserEntity.list(c.env);
+    const user = users.find(u => u.email === email);
+
+    if (!user) {
+      return bad(c, 'User not found');
+    }
+
+    const passwordHash = await mockHash(password);
+    if (user.passwordHash !== passwordHash) {
+      return bad(c, 'Invalid credentials');
+    }
+
+    if (user.role !== 'client') {
+      return bad(c, 'Access denied');
+    }
+
+    const response: LoginResponse = {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+      token: `mock-jwt-token-for-client-${user.id}`,
+    };
+
+    return ok(c, response);
+  });
+
   // --- Admin: Client & Project Management ---
   app.get('/api/admin/clients', async (c) => {
     const { items: clients } = await ClientEntity.list(c.env);
@@ -274,10 +317,12 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.put('/api/content', async (c) => {
     const contentEntity = await WebsiteContentEntity.ensureExists(c.env);
     const newContent = await c.req.json<WebsiteContent>();
+    console.log('Received content for update:', newContent);
     if (!newContent) {
       return bad(c, 'Invalid content data');
     }
     await contentEntity.save(newContent);
+    console.log('Content saved successfully.');
     return ok(c, { message: 'Content updated successfully' });
   });
 }
