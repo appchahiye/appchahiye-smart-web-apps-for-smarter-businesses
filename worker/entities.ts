@@ -61,6 +61,10 @@ export class UserEntity extends IndexedEntity<User> {
     role: 'client',
     passwordHash: '',
     avatarUrl: '',
+    notificationPreferences: {
+      projectUpdates: true,
+      newMessages: true,
+    },
   };
 }
 // --- Client Entity ---

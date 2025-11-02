@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { api } from '@/lib/api-client';
 import type { Client, User } from '@shared/types';
@@ -43,6 +43,18 @@ export default function LeadsClientsPage() {
       fetchClients();
     } catch (error) {
       toast.error('Failed to delete client.');
+    }
+  };
+  const handleStatusChange = async (clientId: string, status: Client['status']) => {
+    try {
+      await api(`/api/admin/clients/${clientId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status }),
+      });
+      toast.success(`Client status updated to ${status}.`);
+      fetchClients();
+    } catch (error) {
+      toast.error('Failed to update client status.');
     }
   };
   return (
@@ -86,7 +98,7 @@ export default function LeadsClientsPage() {
                     </TableCell>
                     <TableCell>{client.company}</TableCell>
                     <TableCell>{client.projectType}</TableCell>
-                    <TableCell><Badge variant={client.status === 'active' ? 'default' : 'secondary'}>{client.status}</Badge></TableCell>
+                    <TableCell><Badge variant={client.status === 'active' ? 'default' : client.status === 'completed' ? 'outline' : 'secondary'}>{client.status}</Badge></TableCell>
                     <TableCell>{format(new Date(client.createdAt), 'PPP')}</TableCell>
                     <TableCell className="text-right">
                       <AlertDialog>
@@ -96,6 +108,16 @@ export default function LeadsClientsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             <DropdownMenuItem onClick={() => handleManageProject(client.id)}>Manage Projects</DropdownMenuItem>
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>Change Status</DropdownMenuSubTrigger>
+                              <DropdownMenuPortal>
+                                <DropdownMenuSubContent>
+                                  <DropdownMenuItem onClick={() => handleStatusChange(client.id, 'pending')}>Set as Pending</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleStatusChange(client.id, 'active')}>Set as Active</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleStatusChange(client.id, 'completed')}>Set as Completed</DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                              </DropdownMenuPortal>
+                            </DropdownMenuSub>
                             <DropdownMenuSeparator />
                             <AlertDialogTrigger asChild>
                               <DropdownMenuItem className="text-red-600"><Trash2 className="mr-2 h-4 w-4" /> Delete Client</DropdownMenuItem>

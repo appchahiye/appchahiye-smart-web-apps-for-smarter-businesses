@@ -17,12 +17,20 @@ import { api } from "@/lib/api-client";
 import type { ClientProfile } from "@shared/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AppLogo } from "../AppLogo";
+import { useContentStore } from "@/stores/contentStore";
+import { useDynamicAssets } from "@/hooks/use-dynamic-assets";
 export function ClientPortalLayout({ children }: { children: React.ReactNode }) {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const { content, fetchContent } = useContentStore();
+  useEffect(() => {
+    fetchContent();
+  }, [fetchContent]);
+  useDynamicAssets(content?.brandAssets, content?.seoMetadata);
   useEffect(() => {
     if (clientId) {
       setIsLoadingProfile(true);
@@ -49,8 +57,7 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
         <nav className="flex flex-col h-full">
           <div className="flex h-16 items-center border-b px-6">
             <NavLink to="/" className="flex items-center gap-2 font-semibold">
-              <div className="h-6 w-6 rounded-md bg-gradient-brand" />
-              <span className="">AppChahiye</span>
+              <AppLogo />
             </NavLink>
           </div>
           <div className="flex-1 overflow-auto py-2">

@@ -30,22 +30,13 @@ import { GetStartedModal } from '@/components/GetStartedModal';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { useContentStore } from '@/stores/contentStore';
 import { useDynamicAssets } from '@/hooks/use-dynamic-assets';
+import { AppLogo } from '@/components/AppLogo';
 const navLinks = [
   { name: 'How It Works', href: '#how-it-works' },
   { name: 'Portfolio', href: '#portfolio' },
   { name: 'Contact', href: '#contact' },
 ];
-const AppLogo = ({ logoUrl }: { logoUrl?: string }) => (
-  <a href="#" className="flex items-center gap-2 font-bold text-xl">
-    {logoUrl ? (
-      <img src={logoUrl} alt="AppChahiye Logo" className="h-8 w-auto" />
-    ) : (
-      <div className="w-7 h-7 bg-gradient-brand rounded-lg" />
-    )}
-    AppChahiye
-  </a>
-);
-const Header = ({ logoUrl, onGetStartedClick }: { logoUrl?: string; onGetStartedClick: () => void }) => {
+const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -56,7 +47,7 @@ const Header = ({ logoUrl, onGetStartedClick }: { logoUrl?: string; onGetStarted
     <header className={cn('fixed top-0 left-0 right-0 z-50 transition-all duration-300', scrolled ? 'bg-background/80 backdrop-blur-lg border-b' : 'bg-transparent')}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <AppLogo logoUrl={logoUrl} />
+          <a href="/" aria-label="Homepage"><AppLogo /></a>
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <a key={link.name} href={link.href} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -339,12 +330,12 @@ const RequirementsFormSection = () => {
     </section>
   );
 };
-const Footer = ({ logoUrl }: { logoUrl?: string }) => (
+const Footer = () => (
     <footer className="bg-background border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="space-y-4">
-                    <AppLogo logoUrl={logoUrl} />
+                    <a href="/" aria-label="Homepage"><AppLogo /></a>
                     <p className="text-muted-foreground text-sm">Smart Web Apps for Smarter Businesses</p>
                 </div>
             </div>
@@ -376,7 +367,7 @@ export function HomePage() {
     <div className="bg-background text-foreground">
       <Toaster richColors />
       <GetStartedModal isOpen={isModalOpen} onClose={handleCloseModal} />
-      <Header logoUrl={content?.brandAssets.logoUrl} onGetStartedClick={handleGetStartedClick} />
+      <Header onGetStartedClick={handleGetStartedClick} />
       <main>
         <HeroSection content={content?.hero} onGetStartedClick={handleGetStartedClick} />
         <HowItWorksSection content={content?.howItWorks} />
@@ -385,7 +376,7 @@ export function HomePage() {
         <TestimonialsSection content={content?.testimonials} />
         <RequirementsFormSection />
       </main>
-      <Footer logoUrl={content?.brandAssets.logoUrl} />
+      <Footer />
     </div>
   );
 }

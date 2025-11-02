@@ -12,6 +12,10 @@ export interface User {
   role: UserRole;
   passwordHash: string; // Stored on backend
   avatarUrl?: string;
+  notificationPreferences?: {
+    projectUpdates: boolean;
+    newMessages: boolean;
+  };
 }
 export interface Client {
   id: string; // Corresponds to User ID
@@ -109,6 +113,10 @@ export interface UpdateClientProfilePayload {
 export interface ChangePasswordPayload {
   currentPassword: string;
   newPassword: string;
+}
+export interface NotificationPreferences {
+    projectUpdates: boolean;
+    newMessages: boolean;
 }
 // --- Website Content Types ---
 export interface HeroContent {
