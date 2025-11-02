@@ -143,9 +143,9 @@ const LogosSection = () => (
       <div className="mt-6 grid grid-cols-2 gap-8 md:grid-cols-6 lg:grid-cols-5 items-center">
         {['Logoipsum', 'Acme Corp', 'Stark Inc', 'Wayne Ent', 'Globex'].map((name, i) => (
           <div key={i} className="col-span-1 flex justify-center md:col-span-2 lg:col-span-1">
-            <img 
-              src={`https://placehold.co/120x40/F7F3FF/6B7280?text=${name}&font=inter`} 
-              alt={`${name} Logo`} 
+            <img
+              src={`https://placehold.co/120x40/F7F3FF/6B7280?text=${name}&font=inter`}
+              alt={`${name} Logo`}
               className="h-8 object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
             />
           </div>
@@ -329,9 +329,9 @@ const TestimonialsSection = ({ content }: { content?: WebsiteContent['testimonia
               ))}
             </div>
           </div>
-          <div className="absolute top-1/2 -translate-y-1/2 flex justify-between w-full px-0 lg:-px-8">
-            <Button onClick={scrollPrev} variant="outline" size="icon" className="rounded-full h-12 w-12"><ChevronLeft /></Button>
-            <Button onClick={scrollNext} variant="outline" size="icon" className="rounded-full h-12 w-12"><ChevronRight /></Button>
+          <div className="absolute top-1/2 -translate-y-1/2 flex justify-between w-full px-0 lg:-px-8 pointer-events-none">
+            <Button onClick={scrollPrev} variant="outline" size="icon" className="rounded-full h-12 w-12 hidden lg:inline-flex pointer-events-auto"><ChevronLeft /></Button>
+            <Button onClick={scrollNext} variant="outline" size="icon" className="rounded-full h-12 w-12 hidden lg:inline-flex pointer-events-auto"><ChevronRight /></Button>
           </div>
         </div>
       </div>
