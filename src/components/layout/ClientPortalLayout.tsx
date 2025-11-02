@@ -19,11 +19,11 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
   // This is a placeholder. In a real app, you'd get this from an auth context.
   const ADMIN_USER_ID = 'admin-user-01';
   const navItems = [
-    { href: `/portal/${clientId}`, icon: LayoutDashboard, label: "Dashboard" },
-    { href: `/portal/${clientId}/projects`, icon: FileText, label: "Projects" },
-    { href: `/portal/${clientId}/invoices`, icon: Receipt, label: "Invoices" },
-    { href: `/portal/${clientId}/files`, icon: FolderArchive, label: "Files" },
-    { href: `/portal/${clientId}/account`, icon: User, label: "Account" },
+    { href: `/portal/${clientId || ''}`, icon: LayoutDashboard, label: "Dashboard" },
+    { href: `/portal/${clientId || ''}/projects`, icon: FileText, label: "Projects" },
+    { href: `/portal/${clientId || ''}/invoices`, icon: Receipt, label: "Invoices" },
+    { href: `/portal/${clientId || ''}/files`, icon: FolderArchive, label: "Files" },
+    { href: `/portal/${clientId || ''}/account`, icon: User, label: "Account" },
   ];
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
