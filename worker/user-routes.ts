@@ -24,7 +24,8 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         return bad(c, 'File is required for upload.');
       }
       const key = `${crypto.randomUUID()}-${file.name}`;
-      await c.env.R2_BUCKET.put(key, file);
+      const arrayBuffer = await file.arrayBuffer();
+      await c.env.R2_BUCKET.put(key, arrayBuffer);
       const url = `${c.env.R2_PUBLIC_URL}/${key}`;
       return ok(c, { url });
     } catch (error) {
