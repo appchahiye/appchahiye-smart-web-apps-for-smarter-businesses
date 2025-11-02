@@ -290,7 +290,6 @@ const Footer = () => (
                 <div className="space-y-4">
                     <AppLogo />
                     <p className="text-muted-foreground text-sm">Smart Web Apps for Smarter Businesses</p>
-                    <p className="text-sm text-muted-foreground">Built with ❤️ at Cloudflare</p>
                 </div>
             </div>
             <div className="mt-8 pt-8 border-t flex flex-col sm:flex-row justify-between items-center">
