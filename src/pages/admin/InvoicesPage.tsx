@@ -21,7 +21,10 @@ import { Toaster, toast } from '@/components/ui/sonner';
 type ClientWithUser = Client & { user?: User };
 const invoiceSchema = z.object({
   clientId: z.string().min(1, 'Client is required'),
-  amount: z.coerce.number().positive('Amount must be a positive number'),
+  amount: z.preprocess(
+    (a) => parseFloat(z.string().parse(a)),
+    z.number().positive('Amount must be a positive number')
+  ),
 });
 type InvoiceFormValues = z.infer<typeof invoiceSchema>;
 export default function InvoicesPage() {
@@ -31,6 +34,10 @@ export default function InvoicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
+    defaultValues: {
+      clientId: '',
+      amount: 0,
+    }
   });
   const fetchInvoices = useCallback(() => {
     setIsLoading(true);
@@ -101,7 +108,7 @@ export default function InvoicesPage() {
                 <FormField control={form.control} name="amount" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Amount ($)</FormLabel>
-                    <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                    <FormControl><Input type="number" step="0.01" {...field} onChange={e => field.onChange(e.target.value)} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />

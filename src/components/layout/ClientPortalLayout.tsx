@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   FileText,
@@ -8,14 +9,19 @@ import {
   FolderArchive,
   User,
   LogOut,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ChatInterface } from "@/components/ChatInterface";
 export function ClientPortalLayout({ children }: { children: React.ReactNode }) {
-  const { clientId } = useParams();
+  const { clientId } = useParams<{ clientId: string }>();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  // This is a placeholder. In a real app, you'd get this from an auth context.
+  const ADMIN_USER_ID = 'admin-user-01';
   const navItems = [
     { href: `/portal/${clientId}`, icon: LayoutDashboard, label: "Dashboard" },
     { href: `/portal/${clientId}/projects`, icon: FileText, label: "Projects" },
-    { href: `/portal/${clientId}/invoices`, icon: FileText, label: "Invoices" },
+    { href: `/portal/${clientId}/invoices`, icon: Receipt, label: "Invoices" },
     { href: `/portal/${clientId}/files`, icon: FolderArchive, label: "Files" },
     { href: `/portal/${clientId}/account`, icon: User, label: "Account" },
   ];
@@ -65,14 +71,33 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
             <div className="flex-1">
                 <h1 className="text-lg font-semibold">Welcome back, Client! 👋</h1>
             </div>
-            <Button variant="outline" size="icon">
-                <MessageSquare className="h-5 w-5" />
-            </Button>
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             {children}
         </main>
       </div>
+      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <SheetTrigger asChild>
+          <Button
+            className="fixed bottom-6 right-6 h-16 w-16 rounded-full bg-gradient-brand text-white shadow-lg hover:scale-105 transition-transform"
+            size="icon"
+          >
+            <MessageSquare className="h-8 w-8" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="w-full sm:max-w-md p-0 flex flex-col">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>Chat with Support</SheetTitle>
+          </SheetHeader>
+          {clientId && (
+            <ChatInterface
+              clientId={clientId}
+              currentUserId={clientId} // For client, their ID is the sender ID
+              receiverId={ADMIN_USER_ID}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
