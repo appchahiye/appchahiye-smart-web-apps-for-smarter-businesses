@@ -34,6 +34,7 @@ export default function InvoicesPage() {
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       clientId: '',
+      amount: undefined,
     },
   });
   const fetchInvoices = useCallback(() => {
