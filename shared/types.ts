@@ -92,6 +92,20 @@ export interface MessageWithSender extends Message {
     role: UserRole;
   };
 }
+// --- Client Account Management Types ---
+export interface ClientProfile {
+  name: string;
+  email: string;
+  company: string;
+}
+export interface UpdateClientProfilePayload {
+  name: string;
+  company: string;
+}
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
 // --- Website Content Types ---
 export interface HeroContent {
   headline: string;
