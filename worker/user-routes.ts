@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Env } from './core-utils';
 import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender } from "@shared/types";
+import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
 // Generates a random, memorable password.
@@ -297,6 +297,51 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const { items: allInvoices } = await InvoiceEntity.list(c.env);
     const clientInvoices = allInvoices.filter(inv => inv.clientId === clientId);
     return ok(c, clientInvoices);
+  });
+  // --- Client Account Management ---
+  app.get('/api/portal/:clientId/account', async (c) => {
+    const { clientId } = c.req.param();
+    const userEntity = new UserEntity(c.env, clientId);
+    const clientEntity = new ClientEntity(c.env, clientId);
+    if (!(await userEntity.exists()) || !(await clientEntity.exists())) {
+      return notFound(c, 'Client account not found');
+    }
+    const user = await userEntity.getState();
+    const client = await clientEntity.getState();
+    const profile: ClientProfile = {
+      name: user.name,
+      email: user.email,
+      company: client.company,
+    };
+    return ok(c, profile);
+  });
+  app.put('/api/portal/:clientId/account', async (c) => {
+    const { clientId } = c.req.param();
+    const { name, company } = await c.req.json<UpdateClientProfilePayload>();
+    if (!name || !company) return bad(c, 'Name and company are required');
+    const userEntity = new UserEntity(c.env, clientId);
+    const clientEntity = new ClientEntity(c.env, clientId);
+    if (!(await userEntity.exists()) || !(await clientEntity.exists())) {
+      return notFound(c, 'Client account not found');
+    }
+    await userEntity.patch({ name });
+    await clientEntity.patch({ company });
+    return ok(c, { message: 'Profile updated successfully' });
+  });
+  app.post('/api/portal/:clientId/change-password', async (c) => {
+    const { clientId } = c.req.param();
+    const { currentPassword, newPassword } = await c.req.json<ChangePasswordPayload>();
+    if (!currentPassword || !newPassword) return bad(c, 'All password fields are required');
+    const userEntity = new UserEntity(c.env, clientId);
+    if (!(await userEntity.exists())) return notFound(c, 'User not found');
+    const user = await userEntity.getState();
+    const currentPasswordHash = await mockHash(currentPassword);
+    if (user.passwordHash !== currentPasswordHash) {
+      return bad(c, 'Current password does not match');
+    }
+    const newPasswordHash = await mockHash(newPassword);
+    await userEntity.patch({ passwordHash: newPasswordHash });
+    return ok(c, { message: 'Password changed successfully' });
   });
   // --- Website Content Management ---
   app.get('/api/content', async (c) => {
