@@ -126,6 +126,15 @@ export interface CtaContent {
   headline: string;
   subheadline: string;
 }
+export interface BrandAssets {
+  logoUrl: string;
+  primaryColor: string;
+  secondaryColor: string;
+}
+export interface SeoMetadata {
+  siteTitle: string;
+  metaDescription: string;
+}
 export interface WebsiteContent {
   hero: HeroContent;
   howItWorks: StepContent[];
@@ -134,4 +143,6 @@ export interface WebsiteContent {
   pricing: PricingTier[];
   testimonials: Testimonial[];
   finalCta: CtaContent;
+  brandAssets: BrandAssets;
+  seoMetadata: SeoMetadata;
 }
