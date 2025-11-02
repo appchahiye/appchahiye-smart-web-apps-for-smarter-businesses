@@ -16,7 +16,7 @@ import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 const heroSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   subheadline: z.string().min(1, 'Subheadline is required'),
-  imageUrl: z.string().url('Must be a valid URL'),
+  imageUrl: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, { message: 'Must be a valid URL or empty' }),
 });
 const stepSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -28,7 +28,7 @@ const featureSchema = z.object({
 });
 const portfolioItemSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  image: z.string().url('Must be a valid URL'),
+  image: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, { message: 'Must be a valid URL or empty' }),
 });
 const pricingTierSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -40,14 +40,14 @@ const testimonialSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   company: z.string().min(1, 'Company is required'),
   text: z.string().min(1, 'Text is required'),
-  avatar: z.string().url('Must be a valid URL'),
+  avatar: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, { message: 'Must be a valid URL or empty' }),
 });
 const ctaSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   subheadline: z.string().min(1, 'Subheadline is required'),
 });
 const brandAssetsSchema = z.object({
-  logoUrl: z.string().url('Must be a valid URL'),
+  logoUrl: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, { message: 'Must be a valid URL or empty' }),
   primaryColor: z.string(),
   secondaryColor: z.string(),
 });
