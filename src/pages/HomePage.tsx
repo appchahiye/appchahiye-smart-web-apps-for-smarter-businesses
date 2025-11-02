@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api-client';
 import type { WebsiteContent } from '@shared/types';
+import { GetStartedModal } from '@/components/GetStartedModal';
 const navLinks = [
   { name: 'How It Works', href: '#how-it-works' },
   { name: 'Portfolio', href: '#portfolio' },
@@ -32,7 +33,7 @@ const AppLogo = () => (
     AppChahiye
   </a>
 );
-const Header = () => {
+const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -52,7 +53,7 @@ const Header = () => {
             ))}
           </nav>
           <div className="hidden md:block">
-            <Button className="bg-gradient-brand text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity">Get Your App</Button>
+            <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity">Get Your App</Button>
           </div>
           <div className="md:hidden">
             <Sheet>
@@ -60,7 +61,7 @@ const Header = () => {
               <SheetContent>
                 <div className="flex flex-col space-y-6 pt-10">
                   {navLinks.map((link) => <a key={link.name} href={link.href} className="text-lg font-medium">{link.name}</a>)}
-                  <Button className="bg-gradient-brand text-white">Get Your App</Button>
+                  <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white">Get Your App</Button>
                 </div>
               </SheetContent>
             </Sheet>
@@ -70,7 +71,7 @@ const Header = () => {
     </header>
   );
 };
-const HeroSection = ({ content }: { content?: WebsiteContent['hero'] }) => (
+const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent['hero'], onGetStartedClick: () => void }) => (
   <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 text-center overflow-hidden">
     <div className="absolute inset-0 bg-gradient-to-br from-electric-blue/20 via-deep-violet/20 to-background -z-10"></div>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -87,7 +88,7 @@ const HeroSection = ({ content }: { content?: WebsiteContent['hero'] }) => (
           </>
         )}
         <div className="mt-10 flex justify-center gap-4">
-          <Button size="lg" className="bg-gradient-brand text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg hover:shadow-xl">Get Started</Button>
+          <Button onClick={onGetStartedClick} size="lg" className="bg-gradient-brand text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg hover:shadow-xl">Get Started</Button>
           <Button size="lg" variant="outline" className="px-8 py-3">See Examples</Button>
         </div>
       </motion.div>
@@ -188,7 +189,7 @@ const PortfolioSection = ({ content }: { content?: WebsiteContent['portfolio'] }
         </div>
     </section>
 );
-const PricingSection = ({ content }: { content?: WebsiteContent['pricing'] }) => (
+const PricingSection = ({ content, onGetStartedClick }: { content?: WebsiteContent['pricing'], onGetStartedClick: () => void }) => (
     <section id="pricing" className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -213,7 +214,7 @@ const PricingSection = ({ content }: { content?: WebsiteContent['pricing'] }) =>
                                         </li>
                                     ))}
                                 </ul>
-                                <Button className={cn("w-full mt-8", tier?.popular ? "bg-gradient-brand text-white" : "")} variant={tier?.popular ? "default" : "outline"}>
+                                <Button onClick={onGetStartedClick} className={cn("w-full mt-8", tier?.popular ? "bg-gradient-brand text-white" : "")} variant={tier?.popular ? "default" : "outline"}>
                                     {tier ? (tier.name === "Enterprise" ? "Request Custom Quote" : "Get Started") : <Skeleton className="h-6 w-32" />}
                                 </Button>
                             </CardContent>
@@ -261,7 +262,7 @@ const TestimonialsSection = ({ content }: { content?: WebsiteContent['testimonia
         </div>
     </section>
 );
-const CtaSection = ({ content }: { content?: WebsiteContent['finalCta'] }) => (
+const CtaSection = ({ content, onGetStartedClick }: { content?: WebsiteContent['finalCta'], onGetStartedClick: () => void }) => (
     <section id="contact" className="py-20 md:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="relative rounded-2xl bg-gradient-brand p-12 text-center text-white overflow-hidden">
@@ -276,7 +277,7 @@ const CtaSection = ({ content }: { content?: WebsiteContent['finalCta'] }) => (
                         <Skeleton className="h-6 w-1/2 mx-auto mt-4 bg-white/20" />
                     </>
                 )}
-                <Button size="lg" variant="outline" className="mt-8 bg-white text-deep-violet hover:bg-white/90 font-bold px-8 py-3">
+                <Button onClick={onGetStartedClick} size="lg" variant="outline" className="mt-8 bg-white text-deep-violet hover:bg-white/90 font-bold px-8 py-3">
                     Start Your Project <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
             </div>
@@ -302,22 +303,26 @@ const Footer = () => (
 );
 export function HomePage() {
   const [content, setContent] = useState<WebsiteContent | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   useEffect(() => {
     api<WebsiteContent>('/api/content')
       .then(data => setContent(data))
       .catch(err => console.error("Failed to fetch content:", err));
   }, []);
+  const handleGetStartedClick = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
   return (
     <div className="bg-background text-foreground">
-      <Header />
+      <GetStartedModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      <Header onGetStartedClick={handleGetStartedClick} />
       <main>
-        <HeroSection content={content?.hero} />
+        <HeroSection content={content?.hero} onGetStartedClick={handleGetStartedClick} />
         <HowItWorksSection content={content?.howItWorks} />
         <WhyChooseUsSection content={content?.whyChooseUs} />
         <PortfolioSection content={content?.portfolio} />
-        <PricingSection content={content?.pricing} />
+        <PricingSection content={content?.pricing} onGetStartedClick={handleGetStartedClick} />
         <TestimonialsSection content={content?.testimonials} />
-        <CtaSection content={content?.finalCta} />
+        <CtaSection content={content?.finalCta} onGetStartedClick={handleGetStartedClick} />
       </main>
       <Footer />
     </div>
