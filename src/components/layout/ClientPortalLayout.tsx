@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -13,11 +13,25 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatInterface } from "@/components/ChatInterface";
+import { api } from "@/lib/api-client";
+import type { ClientProfile } from "@shared/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 export function ClientPortalLayout({ children }: { children: React.ReactNode }) {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
-  // This is a placeholder. In a real app, you'd get this from an auth context.
+  const [profile, setProfile] = useState<ClientProfile | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  useEffect(() => {
+    if (clientId) {
+      setIsLoadingProfile(true);
+      api<ClientProfile>(`/api/portal/${clientId}/account`)
+        .then(setProfile)
+        .catch(err => console.error("Failed to load client profile", err))
+        .finally(() => setIsLoadingProfile(false));
+    }
+  }, [clientId]);
   const ADMIN_USER_ID = 'admin-user-01';
   const navItems = [
     { href: `/portal/${clientId || ''}`, icon: LayoutDashboard, label: "Dashboard" },
@@ -27,7 +41,6 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
     { href: `/portal/${clientId || ''}/account`, icon: User, label: "Account" },
   ];
   const handleLogout = () => {
-    // In a real app, you would clear client-side tokens/session here.
     navigate('/portal/login');
   };
   return (
@@ -74,7 +87,21 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
                 {/* Mobile Nav Trigger can go here */}
             </div>
             <div className="flex-1">
-                <h1 className="text-lg font-semibold">Welcome back, Client! 👋</h1>
+              {isLoadingProfile ? (
+                <Skeleton className="h-6 w-48" />
+              ) : (
+                <h1 className="text-lg font-semibold">Welcome back, {profile?.name?.split(' ')[0]}! 👋</h1>
+              )}
+            </div>
+            <div>
+              {isLoadingProfile ? (
+                <Skeleton className="h-9 w-9 rounded-full" />
+              ) : (
+                <Avatar>
+                  <AvatarImage src={profile?.avatarUrl} alt={profile?.name} />
+                  <AvatarFallback>{profile?.name?.charAt(0) || 'C'}</AvatarFallback>
+                </Avatar>
+              )}
             </div>
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
