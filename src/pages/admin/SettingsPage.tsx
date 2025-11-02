@@ -53,7 +53,10 @@ export default function SettingsPage() {
     setIsSaving(true);
     const updatedContent: WebsiteContent = {
       ...fullContent,
-      brandAssets: data.brandAssets,
+      brandAssets: {
+        ...data.brandAssets,
+        logoUrl: data.brandAssets.logoUrl ?? '',
+      },
       seoMetadata: data.seoMetadata,
     };
     try {

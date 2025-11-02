@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, a, { useEffect, useState } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,6 +46,15 @@ const ctaSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   subheadline: z.string().min(1, 'Subheadline is required'),
 });
+const brandAssetsSchema = z.object({
+  logoUrl: z.string().url().or(z.literal('')),
+  primaryColor: z.string(),
+  secondaryColor: z.string(),
+});
+const seoMetadataSchema = z.object({
+  siteTitle: z.string(),
+  metaDescription: z.string(),
+});
 const contentSchema = z.object({
   hero: heroSchema,
   howItWorks: z.array(stepSchema).length(3, 'There must be exactly 3 steps'),
@@ -54,6 +63,8 @@ const contentSchema = z.object({
   pricing: z.array(pricingTierSchema),
   testimonials: z.array(testimonialSchema),
   finalCta: ctaSchema,
+  brandAssets: brandAssetsSchema,
+  seoMetadata: seoMetadataSchema,
 });
 export default function ContentManagerPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -165,7 +176,6 @@ export default function ContentManagerPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          {/* Other tabs would be implemented similarly */}
           <TabsContent value="howItWorks">
             <Card>
               <CardHeader><CardTitle>How It Works Section</CardTitle></CardHeader>
