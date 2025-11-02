@@ -18,14 +18,22 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // --- File Upload Endpoint ---
   app.post('/api/upload', async (c) => {
     try {
+      console.log('Content-Type:', c.req.header('content-type'));
       const formData = await c.req.formData();
       const file = formData.get('file');
-      if (!file || !(file instanceof File)) {
-        return bad(c, 'File is required for upload.');
+      console.log('File extracted:', !!file);
+      if (!file) {
+        return c.json({ error: 'No file found' }, 400);
       }
+      if (!(file instanceof File)) {
+        return c.json({ error: 'File is not of the correct type' }, 400);
+      }
+
       const key = `${crypto.randomUUID()}-${file.name}`;
       const arrayBuffer = await file.arrayBuffer();
-      await c.env.R2_BUCKET.put(key, arrayBuffer);
+      await c.env.R2_BUCKET.put(key, arrayBuffer, {
+        httpMetadata: { contentType: file.type },
+      });
       const url = `${c.env.R2_PUBLIC_URL}/${key}`;
       return ok(c, { url });
     } catch (error) {
