@@ -11,6 +11,7 @@ export interface User {
   name:string;
   role: UserRole;
   passwordHash: string; // Stored on backend
+  avatarUrl?: string;
 }
 export interface Client {
   id: string; // Corresponds to User ID
@@ -37,6 +38,7 @@ export interface LoginResponse {
     email: string;
     name: string;
     role: UserRole;
+    avatarUrl?: string;
   };
   token: string;
 }
@@ -97,10 +99,12 @@ export interface ClientProfile {
   name: string;
   email: string;
   company: string;
+  avatarUrl?: string;
 }
 export interface UpdateClientProfilePayload {
   name: string;
   company: string;
+  avatarUrl?: string;
 }
 export interface ChangePasswordPayload {
   currentPassword: string;
@@ -142,6 +146,7 @@ export interface CtaContent {
 }
 export interface BrandAssets {
   logoUrl: string;
+  faviconUrl?: string;
   primaryColor: string;
   secondaryColor: string;
 }

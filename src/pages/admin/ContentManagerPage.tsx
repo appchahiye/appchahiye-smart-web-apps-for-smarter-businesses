@@ -13,10 +13,11 @@ import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import type { WebsiteContent } from '@shared/types';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { FileUpload } from '@/components/ui/file-upload';
 const heroSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   subheadline: z.string().min(1, 'Subheadline is required'),
-  imageUrl: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, { message: 'Must be a valid URL or empty' }),
+  imageUrl: z.string().min(1, 'Image is required'),
 });
 const stepSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -28,7 +29,7 @@ const featureSchema = z.object({
 });
 const portfolioItemSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  image: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, { message: 'Must be a valid URL or empty' }),
+  image: z.string().min(1, 'Image is required'),
 });
 const pricingTierSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -40,14 +41,15 @@ const testimonialSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   company: z.string().min(1, 'Company is required'),
   text: z.string().min(1, 'Text is required'),
-  avatar: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, { message: 'Must be a valid URL or empty' }),
+  avatar: z.string().min(1, 'Avatar is required'),
 });
 const ctaSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   subheadline: z.string().min(1, 'Subheadline is required'),
 });
 const brandAssetsSchema = z.object({
-  logoUrl: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, { message: 'Must be a valid URL or empty' }),
+  logoUrl: z.string(),
+  faviconUrl: z.string().optional(),
   primaryColor: z.string(),
   secondaryColor: z.string(),
 });
@@ -75,13 +77,6 @@ export default function ContentManagerPage() {
   const { fields: portfolioFields, append: appendPortfolio, remove: removePortfolio } = useFieldArray({ control, name: "portfolio" });
   const { fields: pricingFields, append: appendPricing, remove: removePricing } = useFieldArray({ control, name: "pricing" });
   const { fields: testimonialFields, append: appendTestimonial, remove: removeTestimonial } = useFieldArray({ control, name: "testimonials" });
-
-  useEffect(() => {
-    if (Object.keys(errors).length > 0) {
-      console.log('Form validation errors:', errors);
-    }
-  }, [errors]);
-
   useEffect(() => {
     api<WebsiteContent>('/api/content')
       .then(data => {
@@ -93,10 +88,7 @@ export default function ContentManagerPage() {
         setIsLoading(false);
       });
   }, [reset]);
-
-
   const onSubmit = async (data: WebsiteContent) => {
-    console.log('Submitting data:', data);
     setIsSaving(true);
     try {
       await api('/api/content', {
@@ -106,7 +98,6 @@ export default function ContentManagerPage() {
       toast.success('Content updated successfully!');
     } catch (error) {
       toast.error('Failed to save content.');
-      console.error('Save failed:', error);
     } finally {
       setIsSaving(false);
     }
@@ -147,18 +138,22 @@ export default function ContentManagerPage() {
               <CardHeader><CardTitle>Hero Section</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="hero.headline">Headline</Label>
-                  <Input id="hero.headline" {...register('hero.headline')} />
+                  <Label>Headline</Label>
+                  <Input {...register('hero.headline')} />
                   {errors.hero?.headline && <p className="text-red-500 text-sm mt-1">{errors.hero.headline.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="hero.subheadline">Subheadline</Label>
-                  <Textarea id="hero.subheadline" {...register('hero.subheadline')} />
+                  <Label>Subheadline</Label>
+                  <Textarea {...register('hero.subheadline')} />
                   {errors.hero?.subheadline && <p className="text-red-500 text-sm mt-1">{errors.hero.subheadline.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="hero.imageUrl">Image URL</Label>
-                  <Input id="hero.imageUrl" {...register('hero.imageUrl')} />
+                  <Label>Image</Label>
+                  <Controller
+                    name="hero.imageUrl"
+                    control={control}
+                    render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} />}
+                  />
                   {errors.hero?.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.hero.imageUrl.message}</p>}
                 </div>
               </CardContent>
@@ -176,8 +171,12 @@ export default function ContentManagerPage() {
                         <Input {...register(`portfolio.${index}.name`)} />
                       </div>
                       <div>
-                        <Label>Image URL</Label>
-                        <Input {...register(`portfolio.${index}.image`)} />
+                        <Label>Image</Label>
+                        <Controller
+                          name={`portfolio.${index}.image`}
+                          control={control}
+                          render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} />}
+                        />
                       </div>
                     </div>
                     <Button type="button" variant="destructive" size="icon" onClick={() => removePortfolio(index)}><Trash2 className="h-4 w-4" /></Button>
@@ -189,6 +188,36 @@ export default function ContentManagerPage() {
               </CardContent>
             </Card>
           </TabsContent>
+           <TabsContent value="testimonials">
+            <Card>
+              <CardHeader><CardTitle>Testimonials Section</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                {testimonialFields.map((field, index) => (
+                  <div key={field.id} className="border p-4 rounded-md space-y-2">
+                     <div className="flex justify-between items-center">
+                      <h3 className="font-semibold">Testimonial {index + 1}</h3>
+                      <Button type="button" variant="destructive" size="icon" onClick={() => removeTestimonial(index)}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                    <div><Label>Name</Label><Input {...register(`testimonials.${index}.name`)} /></div>
+                    <div><Label>Company</Label><Input {...register(`testimonials.${index}.company`)} /></div>
+                    <div><Label>Text</Label><Textarea {...register(`testimonials.${index}.text`)} /></div>
+                    <div>
+                      <Label>Avatar</Label>
+                      <Controller
+                        name={`testimonials.${index}.avatar`}
+                        control={control}
+                        render={({ field }) => <FileUpload value={field.value} onChange={field.onChange} className="h-24 w-24 rounded-full" />}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <Button type="button" variant="outline" onClick={() => appendTestimonial({ name: '', company: '', text: '', avatar: '' })}>
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Testimonial
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          {/* Other tabs remain unchanged */}
           <TabsContent value="howItWorks">
             <Card>
               <CardHeader><CardTitle>How It Works Section</CardTitle></CardHeader>
@@ -261,28 +290,6 @@ export default function ContentManagerPage() {
                 ))}
                 <Button type="button" variant="outline" onClick={() => appendPricing({ name: '', price: '', features: [], popular: false })}>
                   <PlusCircle className="mr-2 h-4 w-4" /> Add Tier
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="testimonials">
-            <Card>
-              <CardHeader><CardTitle>Testimonials Section</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                {testimonialFields.map((field, index) => (
-                  <div key={field.id} className="border p-4 rounded-md space-y-2">
-                     <div className="flex justify-between items-center">
-                      <h3 className="font-semibold">Testimonial {index + 1}</h3>
-                      <Button type="button" variant="destructive" size="icon" onClick={() => removeTestimonial(index)}><Trash2 className="h-4 w-4" /></Button>
-                    </div>
-                    <div><Label>Name</Label><Input {...register(`testimonials.${index}.name`)} /></div>
-                    <div><Label>Company</Label><Input {...register(`testimonials.${index}.company`)} /></div>
-                    <div><Label>Text</Label><Textarea {...register(`testimonials.${index}.text`)} /></div>
-                    <div><Label>Avatar URL</Label><Input {...register(`testimonials.${index}.avatar`)} /></div>
-                  </div>
-                ))}
-                <Button type="button" variant="outline" onClick={() => appendTestimonial({ name: '', company: '', text: '', avatar: '' })}>
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Testimonial
                 </Button>
               </CardContent>
             </Card>
