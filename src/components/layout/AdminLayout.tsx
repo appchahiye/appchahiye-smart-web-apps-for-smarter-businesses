@@ -21,7 +21,6 @@ const navItems = [
   { href: "/admin/content", icon: FileText, label: "Content" },
   { href: "/admin/leads", icon: Users, label: "Leads / Clients" },
   { href: "/admin/invoices", icon: Receipt, label: "Invoices" },
-  // { href: "/admin/projects", icon: Briefcase, label: "Projects" }, // Removed as per new flow
   { href: "/admin/chat", icon: MessageSquare, label: "Chat" },
   { href: "/admin/analytics", icon: LineChart, label: "Analytics" },
   { href: "/admin/settings", icon: Settings, label: "Settings" },
@@ -41,7 +40,7 @@ const NavContent = () => {
           <span className="">AppChahiye Admin</span>
         </NavLink>
       </div>
-      <nav className="flex-1 grid items-start gap-2 p-4 text-sm font-medium">
+      <nav className="flex-1 grid items-start gap-1 p-4 text-sm font-medium">
         {navItems.map(({ href, icon: Icon, label }) => (
           <NavLink
             key={href}
