@@ -27,6 +27,7 @@ import AnalyticsPage from './pages/admin/AnalyticsPage';
 import SettingsPage from './pages/admin/SettingsPage';
 import ClientFilesPage from './pages/portal/ClientFilesPage';
 import ClientAccountPage from './pages/portal/ClientAccountPage';
+import FilledFormsPage from './pages/admin/FilledFormsPage';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -66,6 +67,11 @@ const router = createBrowserRouter([
   {
     path: "/admin/chat",
     element: <ProtectedRoute><AdminChatPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/admin/forms",
+    element: <ProtectedRoute><FilledFormsPage /></ProtectedRoute>,
     errorElement: <RouteErrorBoundary />,
   },
   {
