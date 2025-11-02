@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Env } from './core-utils';
 import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity, FormSubmissionEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission } from "@shared/types";
+import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission, AdminDashboardStats, AnalyticsData, ActivityItem } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
 // Generates a random, memorable password.
@@ -406,6 +406,88 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const { items } = await FormSubmissionEntity.list(c.env);
     items.sort((a, b) => b.submittedAt - a.submittedAt);
     return ok(c, items);
+  });
+  // --- Dynamic Data Endpoints ---
+  app.get('/api/admin/dashboard-stats', async (c) => {
+    const { items: clients } = await ClientEntity.list(c.env);
+    const { items: projects } = await ProjectEntity.list(c.env);
+    const totalLeads = clients.length;
+    const activeClients = clients.filter(cl => cl.status === 'active').length;
+    const projectsInProgress = projects.filter(p => p.progress < 100).length;
+    const conversionRate = totalLeads > 0 ? (activeClients / totalLeads) * 100 : 0;
+    const stats: AdminDashboardStats = {
+      totalLeads,
+      activeClients,
+      projectsInProgress,
+      conversionRate: parseFloat(conversionRate.toFixed(1)),
+    };
+    return ok(c, stats);
+  });
+  app.get('/api/admin/analytics-data', async (c) => {
+    const { items: clients } = await ClientEntity.list(c.env);
+    const { items: projects } = await ProjectEntity.list(c.env);
+    // Leads per month (last 6 months)
+    const leadsPerMonth: { [key: string]: number } = {};
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth() + i, 1);
+      const monthKey = d.toLocaleString('default', { month: 'short' });
+      leadsPerMonth[monthKey] = 0;
+    }
+    clients.forEach(client => {
+      const clientDate = new Date(client.createdAt);
+      if (clientDate >= sixMonthsAgo) {
+        const monthKey = clientDate.toLocaleString('default', { month: 'short' });
+        if (leadsPerMonth[monthKey] !== undefined) {
+          leadsPerMonth[monthKey]++;
+        }
+      }
+    });
+    // Project completion times
+    const clientsById = new Map(clients.map(cl => [cl.id, cl]));
+    const completedProjects = projects.filter(p => p.progress === 100);
+    const projectCompletionTimes = completedProjects.slice(0, 10).map(p => {
+      const client = clientsById.get(p.clientId);
+      const startTime = client ? client.createdAt : p.updatedAt;
+      const endTime = p.updatedAt;
+      const timeDiff = endTime - startTime;
+      const days = Math.max(1, Math.round(timeDiff / (1000 * 60 * 60 * 24)));
+      return { name: p.title.substring(0, 10) + '...', time: days };
+    });
+    const data: AnalyticsData = {
+      leadsPerMonth: Object.entries(leadsPerMonth).map(([name, leads]) => ({ name, leads })),
+      projectCompletionTimes,
+    };
+    return ok(c, data);
+  });
+  app.get('/api/portal/:clientId/activity', async (c) => {
+    const { clientId } = c.req.param();
+    const { items: allProjects } = await ProjectEntity.list(c.env);
+    const { items: allMilestones } = await MilestoneEntity.list(c.env);
+    const clientProjects = allProjects.filter(p => p.clientId === clientId);
+    const clientProjectIds = new Set(clientProjects.map(p => p.id));
+    const clientMilestones = allMilestones.filter(m => clientProjectIds.has(m.projectId));
+    const activity: ActivityItem[] = [];
+    clientProjects.forEach(p => {
+      activity.push({
+        id: `p-${p.id}`,
+        type: 'project_created',
+        text: `Project "${p.title}" was created.`,
+        timestamp: p.updatedAt, // Assuming creation time is last update for simplicity
+      });
+    });
+    clientMilestones.forEach(m => {
+      activity.push({
+        id: `m-${m.id}`,
+        type: 'milestone_updated',
+        text: `Milestone "${m.title}" was updated to "${m.status.replace('_', ' ')}".`,
+        timestamp: m.updatedAt,
+      });
+    });
+    activity.sort((a, b) => b.timestamp - a.timestamp);
+    return ok(c, activity.slice(0, 10)); // Return latest 10 activities
   });
   // --- DELETE Endpoints ---
   app.delete('/api/admin/invoices/:invoiceId', async (c) => {

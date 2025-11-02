@@ -4,12 +4,14 @@ import { ClientPortalLayout } from "@/components/layout/ClientPortalLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api-client';
-import type { ProjectWithMilestones, Milestone, Invoice } from '@shared/types';
+import type { ProjectWithMilestones, Invoice, ActivityItem } from '@shared/types';
 import { formatDistanceToNow } from 'date-fns';
+import { CheckCircle, Circle, Clock } from 'lucide-react';
 export default function ClientDashboardPage() {
   const { clientId } = useParams<{ clientId: string }>();
   const [projects, setProjects] = useState<ProjectWithMilestones[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     if (clientId) {
@@ -17,9 +19,11 @@ export default function ClientDashboardPage() {
       Promise.all([
         api<ProjectWithMilestones[]>(`/api/portal/${clientId}/projects`),
         api<Invoice[]>(`/api/portal/${clientId}/invoices`),
-      ]).then(([projectData, invoiceData]) => {
+        api<ActivityItem[]>(`/api/portal/${clientId}/activity`),
+      ]).then(([projectData, invoiceData, activityData]) => {
         setProjects(projectData);
         setInvoices(invoiceData);
+        setActivity(activityData);
       }).catch(err => {
         console.error("Failed to fetch dashboard data:", err);
       }).finally(() => {
@@ -45,6 +49,11 @@ export default function ClientDashboardPage() {
       .filter(inv => inv.status === 'pending')
       .reduce((sum, inv) => sum + inv.amount, 0);
   }, [invoices]);
+  const activityIcons = {
+    project_created: <CheckCircle className="h-5 w-5 text-primary" />,
+    milestone_updated: <Clock className="h-5 w-5 text-blue-500" />,
+    milestone_created: <Circle className="h-5 w-5 text-muted-foreground" />,
+  };
   return (
     <ClientPortalLayout>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -106,7 +115,27 @@ export default function ClientDashboardPage() {
                 <CardDescription>Recent updates on your project.</CardDescription>
             </CardHeader>
             <CardContent>
-                <p className="text-muted-foreground">Activity feed coming soon.</p>
+                {isLoading ? (
+                    <div className="space-y-4">
+                        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+                    </div>
+                ) : activity.length > 0 ? (
+                    <div className="space-y-4">
+                        {activity.map(item => (
+                            <div key={item.id} className="flex items-center gap-4">
+                                <div>{activityIcons[item.type] || <Circle className="h-5 w-5 text-muted-foreground" />}</div>
+                                <div className="flex-1">
+                                    <p className="text-sm">{item.text}</p>
+                                </div>
+                                <div className="text-xs text-muted-foreground whitespace-nowrap">
+                                    {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-muted-foreground text-sm text-center py-4">No recent activity.</p>
+                )}
             </CardContent>
         </Card>
     </ClientPortalLayout>
