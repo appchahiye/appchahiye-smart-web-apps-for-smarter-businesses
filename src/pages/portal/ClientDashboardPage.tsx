@@ -91,7 +91,7 @@ export default function ClientDashboardPage() {
                         </>
                     ) : (
                         <>
-                            <p className="text-2xl font-bold">${pendingInvoiceTotal.toFixed(2)}</p>
+                            <p className="text-2xl font-bold">PKR {pendingInvoiceTotal.toFixed(2)}</p>
                             <p className="text-xs text-muted-foreground">
                                 {pendingInvoiceTotal > 0 ? 'Total pending amount' : 'No pending invoices'}
                             </p>

@@ -18,8 +18,8 @@ const MOCK_WEBSITE_CONTENT: WebsiteContent = {
   { name: "Inventory System", image: "https://framerusercontent.com/images/3X5p25sTzE2bH5L3u3Ceo8nZpU.png" },
   { name: "Client Portal", image: "https://framerusercontent.com/images/eOkQd205iAnD0d5wVfLQ216s.png" }],
   pricing: [
-  { name: "Starter", price: "$999", features: ["1 Core Workflow", "Up to 5 Users", "Basic Support"], popular: false },
-  { name: "Growth", price: "$2499", features: ["Up to 3 Workflows", "Up to 20 Users", "Priority Support", "Integrations"], popular: true },
+  { name: "Starter", price: "PKR 999", features: ["1 Core Workflow", "Up to 5 Users", "Basic Support"], popular: false },
+  { name: "Growth", price: "PKR 2499", features: ["Up to 3 Workflows", "Up to 20 Users", "Priority Support", "Integrations"], popular: true },
   { name: "Enterprise", price: "Custom", features: ["Unlimited Workflows", "Unlimited Users", "Dedicated Support", "Advanced Security"], popular: false }],
   testimonials: [
   { name: "Sarah L.", company: "CEO, Innovate Inc.", text: "AppChahiye transformed our operations. What used to take hours now takes minutes. A true game-changer!", avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d" },
