@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,7 +27,7 @@ export function ChatInterface({ clientId, currentUserId, receiverId }: ChatInter
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<MessageFormValues>({
     resolver: zodResolver(messageSchema),
   });
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
       const data = await api<MessageWithSender[]>(`/api/chat/${clientId}`);
       setMessages(data);
@@ -36,12 +36,12 @@ export function ChatInterface({ clientId, currentUserId, receiverId }: ChatInter
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [clientId]);
   useEffect(() => {
     fetchMessages();
     const interval = setInterval(fetchMessages, 5000); // Poll every 5 seconds
     return () => clearInterval(interval);
-  }, [clientId]);
+  }, [fetchMessages]);
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;

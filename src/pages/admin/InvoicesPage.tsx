@@ -19,14 +19,20 @@ import type { InvoiceWithClientInfo, Client, User } from '@shared/types';
 import { PlusCircle, MoreHorizontal, Loader2 } from 'lucide-react';
 import { Toaster, toast } from '@/components/ui/sonner';
 type ClientWithUser = Client & { user?: User };
-const invoiceSchema = z.object({
+const invoiceFormSchema = z.object({
   clientId: z.string().min(1, 'Client is required'),
   amount: z.preprocess(
-    (a) => parseFloat(z.string().parse(a)),
+    (a) => {
+      if (typeof a === 'string') return parseFloat(a);
+      if (typeof a === 'number') return a;
+      return undefined;
+    },
     z.number().positive('Amount must be a positive number')
   ),
 });
-type InvoiceFormValues = z.infer<typeof invoiceSchema>;
+type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
+// Explicitly type the schema to resolve the conflict with react-hook-form
+const invoiceSchema: z.ZodType<InvoiceFormValues> = invoiceFormSchema;
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<InvoiceWithClientInfo[]>([]);
   const [clients, setClients] = useState<ClientWithUser[]>([]);
