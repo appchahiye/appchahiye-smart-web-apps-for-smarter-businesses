@@ -86,6 +86,8 @@ export default function ContentManagerPage() {
         setIsLoading(false);
       });
   }, [reset]);
+
+
   const onSubmit = async (data: WebsiteContent) => {
     setIsSaving(true);
     try {
@@ -95,7 +97,8 @@ export default function ContentManagerPage() {
       });
       toast.success('Content updated successfully!');
     } catch (error) {
-      toast.error('Failed to update content.');
+      toast.error('Failed to save content.');
+      console.error('Save failed:', error);
     } finally {
       setIsSaving(false);
     }
@@ -120,7 +123,7 @@ export default function ContentManagerPage() {
           </Button>
         </div>
         <Tabs defaultValue="hero">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 mb-4">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-9 mb-4">
             <TabsTrigger value="hero">Hero</TabsTrigger>
             <TabsTrigger value="howItWorks">How It Works</TabsTrigger>
             <TabsTrigger value="whyChooseUs">Features</TabsTrigger>
@@ -128,6 +131,8 @@ export default function ContentManagerPage() {
             <TabsTrigger value="pricing">Pricing</TabsTrigger>
             <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
             <TabsTrigger value="cta">Final CTA</TabsTrigger>
+            <TabsTrigger value="brand">Brand</TabsTrigger>
+            <TabsTrigger value="seo">SEO</TabsTrigger>
           </TabsList>
           <TabsContent value="hero">
             <Card>
@@ -285,6 +290,40 @@ export default function ContentManagerPage() {
                 <div>
                   <Label>Subheadline</Label>
                   <Textarea {...register('finalCta.subheadline')} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="brand">
+            <Card>
+              <CardHeader><CardTitle>Brand Assets</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Logo URL</Label>
+                  <Input {...register('brandAssets.logoUrl')} />
+                </div>
+                <div>
+                  <Label>Primary Color</Label>
+                  <Input {...register('brandAssets.primaryColor')} />
+                </div>
+                <div>
+                  <Label>Secondary Color</Label>
+                  <Input {...register('brandAssets.secondaryColor')} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="seo">
+            <Card>
+              <CardHeader><CardTitle>SEO Metadata</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Site Title</Label>
+                  <Input {...register('seoMetadata.siteTitle')} />
+                </div>
+                <div>
+                  <Label>Meta Description</Label>
+                  <Textarea {...register('seoMetadata.metaDescription')} />
                 </div>
               </CardContent>
             </Card>
