@@ -13,9 +13,8 @@ import {
   Scaling,
   Cpu,
   CheckCircle,
-  Linkedin,
   Instagram,
-  Twitter,
+  Facebook,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api-client';
@@ -288,14 +287,17 @@ const Footer = () => (
     <footer className="bg-background border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div className="space-y-4"><AppLogo /><p className="text-muted-foreground text-sm">Smart Web Apps for Smarter Businesses</p></div>
+                <div className="space-y-4">
+                    <AppLogo />
+                    <p className="text-muted-foreground text-sm">Smart Web Apps for Smarter Businesses</p>
+                    <p className="text-sm text-muted-foreground">Built with ❤️ at Cloudflare</p>
+                </div>
             </div>
             <div className="mt-8 pt-8 border-t flex flex-col sm:flex-row justify-between items-center">
                 <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} AppChahiye. All rights reserved.</p>
                 <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-                    <a href="#" className="text-muted-foreground hover:text-foreground"><Linkedin className="w-5 h-5" /></a>
                     <a href="#" className="text-muted-foreground hover:text-foreground"><Instagram className="w-5 h-5" /></a>
-                    <a href="#" className="text-muted-foreground hover:text-foreground"><Twitter className="w-5 h-5" /></a>
+                    <a href="#" className="text-muted-foreground hover:text-foreground"><Facebook className="w-5 h-5" /></a>
                 </div>
             </div>
         </div>
