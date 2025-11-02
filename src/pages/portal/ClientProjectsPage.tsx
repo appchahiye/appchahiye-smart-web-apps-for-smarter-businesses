@@ -7,9 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api-client';
 import type { ProjectWithMilestones, Milestone } from '@shared/types';
-import { CheckCircle, Circle, Clock, File as FileIcon, Download } from 'lucide-react';
+import { CheckCircle, Circle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
 const statusIcons = {
   completed: <CheckCircle className="h-5 w-5 text-green-500" />,
   in_progress: <Clock className="h-5 w-5 text-blue-500" />,
@@ -18,31 +17,9 @@ const statusIcons = {
 const MilestoneItem = ({ milestone }: { milestone: Milestone }) => (
   <div className="flex items-start gap-4 py-4">
     <div>{statusIcons[milestone.status]}</div>
-    <div className="flex-1 space-y-2">
-      <div>
-        <p className="font-semibold">{milestone.title}</p>
-        <p className="text-sm text-muted-foreground">{milestone.description}</p>
-      </div>
-      {milestone.files && milestone.files.length > 0 && (
-        <div className="space-y-2 pt-2">
-          <h4 className="text-sm font-medium">Attached Files:</h4>
-          <div className="flex flex-col gap-2">
-            {milestone.files.map((fileUrl, index) => (
-              <a
-                key={index}
-                href={fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                download
-                className="flex items-center gap-2 text-sm text-primary hover:underline"
-              >
-                <FileIcon className="h-4 w-4" />
-                <span>{fileUrl.split('/').pop() || 'Download File'}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
+    <div className="flex-1">
+      <p className="font-semibold">{milestone.title}</p>
+      <p className="text-sm text-muted-foreground">{milestone.description}</p>
     </div>
     {milestone.dueDate && (
       <div className="text-sm text-muted-foreground whitespace-nowrap">
