@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
       });
       login(response.user, response.token);
       toast.success('Login successful! Redirecting...');
-      setTimeout(() => navigate('/admin'), 1000);
+      setTimeout(() => navigate('/yenahimilna'), 1000);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
     }
