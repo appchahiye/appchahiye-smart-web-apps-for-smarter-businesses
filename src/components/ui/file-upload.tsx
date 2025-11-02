@@ -3,8 +3,6 @@ import { useDropzone } from 'react-dropzone';
 import { Loader2, UploadCloud, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
-import { api } from '@/lib/api-client';
-import { toast } from 'sonner';
 interface FileUploadProps {
   value: string;
   onChange: (url: string) => void;
@@ -12,25 +10,18 @@ interface FileUploadProps {
 }
 export function FileUpload({ value, onChange, className }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       setIsUploading(true);
-      const file = acceptedFiles[0];
-      const formData = new FormData();
-      formData.append('file', file);
-      try {
-        const response = await api<{ url: string }>('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        onChange(response.url);
-        toast.success('File uploaded successfully!');
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'File upload failed. Please try again.';
-        toast.error(errorMessage);
-      } finally {
+      // Simulate upload
+      setTimeout(() => {
+        // In a real app, you'd upload the file and get a URL back.
+        // Here, we'll just use a placeholder.
+        const randomImageId = Math.floor(Math.random() * 1000);
+        const mockUrl = `https://i.pravatar.cc/300?u=${randomImageId}`;
+        onChange(mockUrl);
         setIsUploading(false);
-      }
+      }, 1500);
     }
   }, [onChange]);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

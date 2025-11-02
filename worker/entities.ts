@@ -30,6 +30,7 @@ const MOCK_WEBSITE_CONTENT: WebsiteContent = {
   },
   brandAssets: {
     logoUrl: "",
+    faviconUrl: "",
     primaryColor: "#2F80ED",
     secondaryColor: "#5B2EFF"
   },
@@ -59,6 +60,7 @@ export class UserEntity extends IndexedEntity<User> {
     name: '',
     role: 'client',
     passwordHash: '',
+    avatarUrl: '',
   };
 }
 // --- Client Entity ---

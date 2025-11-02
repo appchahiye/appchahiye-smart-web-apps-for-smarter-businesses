@@ -30,11 +30,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
           passwordHash: await mockHash('Eiahta@840'),
         });
       }
+      const userState = await adminUserEntity.getState();
       const user: LoginResponse['user'] = {
         id: adminId,
         email: 'appchahiye@gmail.com',
         name: 'Admin User',
         role: 'admin',
+        avatarUrl: userState.avatarUrl,
       };
       const response: LoginResponse = {
         user,
@@ -69,6 +71,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         email,
         role: 'client',
         passwordHash,
+        avatarUrl: `https://i.pravatar.cc/150?u=${userId}`
       };
       await UserEntity.create(c.env, newUser);
       const newClient: Client = {
@@ -116,6 +119,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         email: user.email,
         name: user.name,
         role: user.role,
+        avatarUrl: user.avatarUrl,
       },
       token: `mock-jwt-token-for-client-${user.id}`,
     };
@@ -312,19 +316,20 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       name: user.name,
       email: user.email,
       company: client.company,
+      avatarUrl: user.avatarUrl,
     };
     return ok(c, profile);
   });
   app.put('/api/portal/:clientId/account', async (c) => {
     const { clientId } = c.req.param();
-    const { name, company } = await c.req.json<UpdateClientProfilePayload>();
+    const { name, company, avatarUrl } = await c.req.json<UpdateClientProfilePayload>();
     if (!name || !company) return bad(c, 'Name and company are required');
     const userEntity = new UserEntity(c.env, clientId);
     const clientEntity = new ClientEntity(c.env, clientId);
     if (!(await userEntity.exists()) || !(await clientEntity.exists())) {
       return notFound(c, 'Client account not found');
     }
-    await userEntity.patch({ name });
+    await userEntity.patch({ name, avatarUrl });
     await clientEntity.patch({ company });
     return ok(c, { message: 'Profile updated successfully' });
   });
