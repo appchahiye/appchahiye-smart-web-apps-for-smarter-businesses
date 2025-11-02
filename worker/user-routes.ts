@@ -15,6 +15,23 @@ const generatePassword = (length = 10) => {
   return password;
 };
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
+  // --- File Upload Endpoint ---
+  app.post('/api/upload', async (c) => {
+    try {
+      const formData = await c.req.formData();
+      const file = formData.get('file');
+      if (!file || !(file instanceof File)) {
+        return bad(c, 'File is required for upload.');
+      }
+      const key = `${crypto.randomUUID()}-${file.name}`;
+      await c.env.R2_BUCKET.put(key, file);
+      const url = `${c.env.R2_PUBLIC_URL}/${key}`;
+      return ok(c, { url });
+    } catch (error) {
+      console.error('Upload failed:', error);
+      return bad(c, 'An error occurred during file upload.');
+    }
+  });
   // --- Mock Admin Authentication ---
   app.post('/api/admin/login', async (c) => {
     const { email, password } = await c.req.json();
