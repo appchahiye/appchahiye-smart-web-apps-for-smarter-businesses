@@ -20,26 +20,26 @@ import { AppLogo } from "../AppLogo";
 import { useContentStore } from "@/stores/contentStore";
 import { useDynamicAssets } from "@/hooks/use-dynamic-assets";
 const navItems = [
-  { href: "/admin", icon: Home, label: "Dashboard" },
-  { href: "/admin/content", icon: FileText, label: "Content" },
-  { href: "/admin/leads", icon: Users, label: "Leads / Clients" },
-  { href: "/admin/invoices", icon: Receipt, label: "Invoices" },
-  { href: "/admin/chat", icon: MessageSquare, label: "Chat" },
-  { href: "/admin/forms", icon: ClipboardList, label: "Filled Forms" },
-  { href: "/admin/analytics", icon: LineChart, label: "Analytics" },
-  { href: "/admin/settings", icon: Settings, label: "Settings" },
+  { href: "/yenahimilna", icon: Home, label: "Dashboard" },
+  { href: "/yenahimilna/content", icon: FileText, label: "Content" },
+  { href: "/yenahimilna/leads", icon: Users, label: "Leads / Clients" },
+  { href: "/yenahimilna/invoices", icon: Receipt, label: "Invoices" },
+  { href: "/yenahimilna/chat", icon: MessageSquare, label: "Chat" },
+  { href: "/yenahimilna/forms", icon: ClipboardList, label: "Filled Forms" },
+  { href: "/yenahimilna/analytics", icon: LineChart, label: "Analytics" },
+  { href: "/yenahimilna/settings", icon: Settings, label: "Settings" },
 ];
 const NavContent = () => {
   const logout = useAuthStore(state => state.logout);
   const navigate = useNavigate();
   const handleLogout = () => {
     logout();
-    navigate('/admin/login');
+    navigate('/yenahimilna/login');
   };
   return (
     <div className="flex flex-col h-full">
       <div className="flex h-16 items-center border-b px-6">
-        <NavLink to="/admin" className="flex items-center gap-2 font-semibold">
+        <NavLink to="/yenahimilna" className="flex items-center gap-2 font-semibold">
           <AppLogo />
         </NavLink>
       </div>
@@ -48,7 +48,7 @@ const NavContent = () => {
           <NavLink
             key={href}
             to={href}
-            end={href === '/admin'}
+            end={href === '/yenahimilna'}
             className={({ isActive }) =>
               cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
