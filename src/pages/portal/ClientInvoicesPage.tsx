@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api-client';
 import type { Invoice } from '@shared/types';
 import { format } from 'date-fns';
-import { Download, CreditCard } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { toast, Toaster } from '@/components/ui/sonner';
 export default function ClientInvoicesPage() {
   const { clientId } = useParams<{ clientId: string }>();
@@ -26,11 +26,6 @@ export default function ClientInvoicesPage() {
   const handleDownload = (url: string) => {
     toast.info("This is a mock download. In a real app, this would download the PDF.");
     console.log("Downloading from:", url);
-  };
-  const handlePay = (invoiceId: string) => {
-    toast.success(`Payment for invoice ${invoiceId.substring(0, 8)} processed successfully!`, {
-      description: 'This is a mock payment confirmation.',
-    });
   };
   return (
     <ClientPortalLayout>
@@ -66,15 +61,10 @@ export default function ClientInvoicesPage() {
                 invoices.map(invoice => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-mono text-sm">{invoice.id.substring(0, 8)}</TableCell>
-                    <TableCell>PKR {invoice.amount.toFixed(2)}</TableCell>
+                    <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                     <TableCell><Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>{invoice.status}</Badge></TableCell>
                     <TableCell>{format(new Date(invoice.issuedAt), 'PPP')}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      {invoice.status === 'pending' && (
-                        <Button variant="default" size="sm" onClick={() => handlePay(invoice.id)}>
-                          <CreditCard className="mr-2 h-4 w-4" /> Pay Now
-                        </Button>
-                      )}
+                    <TableCell className="text-right">
                       <Button variant="outline" size="sm" onClick={() => handleDownload(invoice.pdf_url)}>
                         <Download className="mr-2 h-4 w-4" /> Download
                       </Button>
