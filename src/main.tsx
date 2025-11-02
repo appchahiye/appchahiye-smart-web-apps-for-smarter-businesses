@@ -22,6 +22,7 @@ import ClientProjectsPageAdmin from './pages/admin/ClientProjectsPage';
 import ClientProjectsPage from './pages/portal/ClientProjectsPage';
 import AdminInvoicesPage from './pages/admin/InvoicesPage';
 import ClientInvoicesPage from './pages/portal/ClientInvoicesPage';
+import AdminChatPage from './pages/admin/ChatPage';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -56,6 +57,11 @@ const router = createBrowserRouter([
   {
     path: "/admin/invoices",
     element: <ProtectedRoute><AdminInvoicesPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/admin/chat",
+    element: <ProtectedRoute><AdminChatPage /></ProtectedRoute>,
     errorElement: <RouteErrorBoundary />,
   },
   {
