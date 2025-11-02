@@ -18,11 +18,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // --- File Upload Endpoint ---
   app.post('/api/upload', async (c) => {
     try {
+      console.log('Incoming /api/upload request headers:', Object.fromEntries(c.req.raw.headers));
       console.log('Content-Type:', c.req.header('content-type'));
       const formData = await c.req.formData();
       const file = formData.get('file');
       console.log('File extracted:', !!file);
       if (!file) {
+        console.log('DEBUG: No file found in FormData for /api/upload');
         return c.json({ error: 'No file found' }, 400);
       }
       if (!(file instanceof File)) {
@@ -36,9 +38,9 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       });
       const url = `${c.env.R2_PUBLIC_URL}/${key}`;
       return ok(c, { url });
-    } catch (error) {
-      console.error('Upload failed:', error);
-      return bad(c, 'An error occurred during file upload.');
+    } catch (err: any) {
+      console.error('Upload failed in worker:', err);
+      return c.json({ error: err.message || 'Upload failed' }, 500);
     }
   });
   // --- Mock Admin Authentication ---
