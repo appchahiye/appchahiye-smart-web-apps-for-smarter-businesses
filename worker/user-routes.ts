@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity } from "./entities";
+import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones } from "@shared/types";
+import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
 // Generates a random, memorable password.
@@ -143,6 +143,48 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await milestoneEntity.patch({ ...updates, updatedAt: Date.now() });
     return ok(c, await milestoneEntity.getState());
   });
+  // --- Admin: Invoice Management ---
+  app.get('/api/admin/invoices', async (c) => {
+    const { items: invoices } = await InvoiceEntity.list(c.env);
+    const { items: clients } = await ClientEntity.list(c.env);
+    const { items: users } = await UserEntity.list(c.env);
+    const clientsById = new Map(clients.map(cl => [cl.id, cl]));
+    const usersById = new Map(users.map(u => [u.id, u]));
+    const invoicesWithClientInfo: InvoiceWithClientInfo[] = invoices.map(inv => {
+      const client = clientsById.get(inv.clientId);
+      const user = client ? usersById.get(client.userId) : undefined;
+      return {
+        ...inv,
+        clientName: user?.name || 'N/A',
+        clientCompany: client?.company || 'N/A',
+      };
+    });
+    return ok(c, invoicesWithClientInfo);
+  });
+  app.post('/api/admin/clients/:clientId/invoices', async (c) => {
+    const { clientId } = c.req.param();
+    const { amount } = await c.req.json<{ amount: number }>();
+    if (!amount || amount <= 0) return bad(c, 'A valid amount is required');
+    const newInvoice: Invoice = {
+      id: crypto.randomUUID(),
+      clientId,
+      amount,
+      status: 'pending',
+      pdf_url: `/mock-invoice-${crypto.randomUUID()}.pdf`,
+      issuedAt: Date.now(),
+    };
+    await InvoiceEntity.create(c.env, newInvoice);
+    return ok(c, newInvoice);
+  });
+  app.put('/api/admin/invoices/:invoiceId', async (c) => {
+    const { invoiceId } = c.req.param();
+    const { status } = await c.req.json<{ status: 'pending' | 'paid' }>();
+    if (!status || !['pending', 'paid'].includes(status)) return bad(c, 'Invalid status');
+    const invoiceEntity = new InvoiceEntity(c.env, invoiceId);
+    if (!(await invoiceEntity.exists())) return notFound(c);
+    await invoiceEntity.patch({ status });
+    return ok(c, await invoiceEntity.getState());
+  });
   // --- Client Portal Data ---
   app.get('/api/portal/:clientId/projects', async (c) => {
     const { clientId } = c.req.param();
@@ -156,6 +198,12 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         .sort((a, b) => (a.dueDate || 0) - (b.dueDate || 0)),
     }));
     return ok(c, projectsWithMilestones);
+  });
+  app.get('/api/portal/:clientId/invoices', async (c) => {
+    const { clientId } = c.req.param();
+    const { items: allInvoices } = await InvoiceEntity.list(c.env);
+    const clientInvoices = allInvoices.filter(inv => inv.clientId === clientId);
+    return ok(c, clientInvoices);
   });
   // --- Website Content Management ---
   app.get('/api/content', async (c) => {
