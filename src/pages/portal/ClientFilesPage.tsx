@@ -26,16 +26,14 @@ export default function ClientFilesPage() {
           const allFiles: FileItem[] = [];
           projects.forEach(project => {
             project.milestones.forEach(milestone => {
-              if (milestone.files) {
-                milestone.files.forEach(fileUrl => {
-                  allFiles.push({
-                    name: fileUrl.split('/').pop() || 'Untitled File',
-                    url: fileUrl,
-                    milestone: milestone.title,
-                    project: project.title,
-                  });
+              milestone.files.forEach(fileUrl => {
+                allFiles.push({
+                  name: fileUrl.split('/').pop() || 'Untitled File',
+                  url: fileUrl,
+                  milestone: milestone.title,
+                  project: project.title,
                 });
-              }
+              });
             });
           });
           setFiles(allFiles);
@@ -44,6 +42,10 @@ export default function ClientFilesPage() {
         .finally(() => setIsLoading(false));
     }
   }, [clientId]);
+  const handleDownload = (url: string) => {
+    toast.info("This is a mock download. In a real app, this would download the file.");
+    console.log("Downloading from:", url);
+  };
   return (
     <ClientPortalLayout>
       <Toaster richColors />
@@ -75,25 +77,15 @@ export default function ClientFilesPage() {
               ) : files.length > 0 ? (
                 files.map((file, index) => (
                   <TableRow key={index}>
-                    <TableCell>
-                      <a
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                        className="font-medium flex items-center gap-2 hover:underline text-primary"
-                      >
-                        <FileIcon className="h-4 w-4 text-muted-foreground" />
-                        {file.name}
-                      </a>
+                    <TableCell className="font-medium flex items-center gap-2">
+                      <FileIcon className="h-4 w-4 text-muted-foreground" />
+                      {file.name}
                     </TableCell>
                     <TableCell>{file.milestone}</TableCell>
                     <TableCell>{file.project}</TableCell>
                     <TableCell className="text-right">
-                      <Button asChild variant="outline" size="sm">
-                         <a href={file.url} target="_blank" rel="noopener noreferrer" download>
-                           <Download className="mr-2 h-4 w-4" /> Download
-                         </a>
+                      <Button variant="outline" size="sm" onClick={() => handleDownload(file.url)}>
+                        <Download className="mr-2 h-4 w-4" /> Download
                       </Button>
                     </TableCell>
                   </TableRow>
