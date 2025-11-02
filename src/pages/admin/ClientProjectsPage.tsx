@@ -13,7 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { DatePicker } from '@/components/DatePicker';
@@ -21,7 +22,6 @@ import { api } from '@/lib/api-client';
 import type { Project, Milestone, ProjectWithMilestones } from '@shared/types';
 import { PlusCircle, MoreVertical, Edit, Trash2, Loader2 } from 'lucide-react';
 import { Toaster, toast } from '@/components/ui/sonner';
-// Schemas for form validation
 const projectSchema = z.object({
   title: z.string().min(3, 'Project title must be at least 3 characters long'),
 });
@@ -33,16 +33,15 @@ const milestoneSchema = z.object({
 });
 type ProjectFormValues = z.infer<typeof projectSchema>;
 type MilestoneFormValues = z.infer<typeof milestoneSchema>;
-// Milestone Modal Component
 const MilestoneModal = ({
   projectId,
   milestone,
-  onSuccess,
+  onDataChange,
   children,
 }: {
   projectId: string;
   milestone?: Milestone;
-  onSuccess: () => void;
+  onDataChange: () => void;
   children: React.ReactNode;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +67,7 @@ const MilestoneModal = ({
         await api(`/api/admin/projects/${projectId}/milestones`, { method: 'POST', body: JSON.stringify(payload) });
         toast.success('Milestone added successfully!');
       }
-      onSuccess();
+      onDataChange();
       setIsOpen(false);
       form.reset();
     } catch (error) {
@@ -85,18 +84,10 @@ const MilestoneModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="title" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
+              <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="description" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl><Textarea {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
+              <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="status" render={({ field }) => (
               <FormItem>
@@ -113,11 +104,7 @@ const MilestoneModal = ({
               </FormItem>
             )} />
             <FormField control={form.control} name="dueDate" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Due Date</FormLabel>
-                <FormControl><DatePicker date={field.value ?? undefined} setDate={field.onChange} /></FormControl>
-                <FormMessage />
-              </FormItem>
+              <FormItem><FormLabel>Due Date</FormLabel><FormControl><DatePicker date={field.value ?? undefined} setDate={field.onChange} /></FormControl><FormMessage /></FormItem>
             )} />
             <DialogFooter>
               <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
@@ -132,33 +119,56 @@ const MilestoneModal = ({
     </Dialog>
   );
 };
-// Project Card Component
-const ProjectCard = ({ project, onUpdate }: { project: ProjectWithMilestones; onUpdate: () => void }) => {
-  const calculateProgress = () => {
-    if (project.milestones.length === 0) return 0;
-    const completed = project.milestones.filter(m => m.status === 'completed').length;
-    return Math.round((completed / project.milestones.length) * 100);
-  };
-  const progress = calculateProgress();
+const ProjectCard = ({ project, onDataChange }: { project: ProjectWithMilestones; onDataChange: () => void }) => {
+  const progress = project.milestones.length > 0 ? Math.round(project.milestones.filter(m => m.status === 'completed').length / project.milestones.length * 100) : 0;
   useEffect(() => {
-    // If calculated progress differs from stored progress, update it.
     if (progress !== project.progress) {
-      api(`/api/admin/projects/${project.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ progress }),
-      }).catch(err => console.error("Failed to auto-update progress", err));
+      api(`/api/admin/projects/${project.id}`, { method: 'PUT', body: JSON.stringify({ progress }) })
+        .catch(err => console.error("Failed to auto-update progress", err));
     }
   }, [progress, project.progress, project.id]);
+  const handleDeleteProject = async () => {
+    try {
+      await api(`/api/admin/projects/${project.id}`, { method: 'DELETE' });
+      toast.success('Project deleted successfully!');
+      onDataChange();
+    } catch (error) {
+      toast.error('Failed to delete project.');
+    }
+  };
+  const handleDeleteMilestone = async (milestoneId: string) => {
+    try {
+      await api(`/api/admin/milestones/${milestoneId}`, { method: 'DELETE' });
+      toast.success('Milestone deleted successfully!');
+      onDataChange();
+    } catch (error) {
+      toast.error('Failed to delete milestone.');
+    }
+  };
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>{project.title}</CardTitle>
-          <MilestoneModal projectId={project.id} onSuccess={onUpdate}>
-            <Button size="sm" variant="outline">
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Milestone
-            </Button>
-          </MilestoneModal>
+          <div className="flex items-center gap-2">
+            <MilestoneModal projectId={project.id} onDataChange={onDataChange}>
+              <Button size="sm" variant="outline"><PlusCircle className="mr-2 h-4 w-4" /> Add Milestone</Button>
+            </MilestoneModal>
+            <AlertDialog>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem className="text-red-600"><Trash2 className="mr-2 h-4 w-4" /> Delete Project</DropdownMenuItem>
+                  </AlertDialogTrigger>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent>
+                <AlertDialogHeader><AlertDialogTitle>Delete Project?</AlertDialogTitle><AlertDialogDescription>This will delete the project and all its milestones. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleDeleteProject}>Delete</AlertDialogAction></AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
         <CardDescription>Last updated: {format(new Date(project.updatedAt), 'PPP')}</CardDescription>
       </CardHeader>
@@ -166,24 +176,30 @@ const ProjectCard = ({ project, onUpdate }: { project: ProjectWithMilestones; on
         <div className="space-y-4">
           <div>
             <Label>Progress</Label>
-            <div className="flex items-center gap-2">
-              <Progress value={progress} className="w-full" />
-              <span className="text-sm font-medium">{progress}%</span>
-            </div>
+            <div className="flex items-center gap-2"><Progress value={progress} className="w-full" /><span className="text-sm font-medium">{progress}%</span></div>
           </div>
           <div>
             <h4 className="font-semibold mb-2">Milestones</h4>
             <div className="space-y-2">
               {project.milestones.length > 0 ? (
                 project.milestones.map(milestone => (
-                  <div key={milestone.id} className="flex items-center justify-between p-2 rounded-md border">
+                  <div key={milestone.id} className="flex items-center justify-between p-2 rounded-md border group">
                     <div>
                       <p className="font-medium">{milestone.title}</p>
                       <p className="text-sm text-muted-foreground">{milestone.status.replace('_', ' ')}</p>
                     </div>
-                    <MilestoneModal projectId={project.id} milestone={milestone} onSuccess={onUpdate}>
-                      <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
-                    </MilestoneModal>
+                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <MilestoneModal projectId={project.id} milestone={milestone} onDataChange={onDataChange}>
+                        <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
+                      </MilestoneModal>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Delete Milestone?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteMilestone(milestone.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -196,39 +212,26 @@ const ProjectCard = ({ project, onUpdate }: { project: ProjectWithMilestones; on
     </Card>
   );
 };
-// Main Page Component
-export default function ClientProjectsPage() {
+export default function ClientProjectsPageAdmin() {
   const { clientId } = useParams<{ clientId: string }>();
   const [projects, setProjects] = useState<ProjectWithMilestones[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
-  const projectForm = useForm<ProjectFormValues>({
-    resolver: zodResolver(projectSchema),
-  });
+  const projectForm = useForm<ProjectFormValues>({ resolver: zodResolver(projectSchema) });
   const fetchProjects = useCallback(() => {
     if (clientId) {
       setIsLoading(true);
       api<ProjectWithMilestones[]>(`/api/portal/${clientId}/projects`)
-        .then(data => {
-          setProjects(data);
-        })
-        .catch(err => {
-          console.error("Failed to fetch projects:", err);
-          toast.error("Failed to load projects.");
-        })
+        .then(data => setProjects(data))
+        .catch(err => { console.error("Failed to fetch projects:", err); toast.error("Failed to load projects."); })
         .finally(() => setIsLoading(false));
     }
   }, [clientId]);
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+  useEffect(() => { fetchProjects(); }, [fetchProjects]);
   const onNewProjectSubmit = async (values: ProjectFormValues) => {
     if (!clientId) return;
     try {
-      await api(`/api/admin/clients/${clientId}/projects`, {
-        method: 'POST',
-        body: JSON.stringify(values),
-      });
+      await api(`/api/admin/clients/${clientId}/projects`, { method: 'POST', body: JSON.stringify(values) });
       toast.success('Project created successfully!');
       fetchProjects();
       setIsProjectModalOpen(false);
@@ -243,21 +246,13 @@ export default function ClientProjectsPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Manage Projects for Client</h1>
         <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
-          <DialogTrigger asChild>
-            <Button><PlusCircle className="mr-2 h-4 w-4" /> New Project</Button>
-          </DialogTrigger>
+          <DialogTrigger asChild><Button><PlusCircle className="mr-2 h-4 w-4" /> New Project</Button></DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Project</DialogTitle>
-            </DialogHeader>
+            <DialogHeader><DialogTitle>Create New Project</DialogTitle></DialogHeader>
             <Form {...projectForm}>
               <form onSubmit={projectForm.handleSubmit(onNewProjectSubmit)} className="space-y-4">
                 <FormField control={projectForm.control} name="title" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Project Title</FormLabel>
-                    <FormControl><Input placeholder="e.g., New CRM Development" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Project Title</FormLabel><FormControl><Input placeholder="e.g., New CRM Development" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <DialogFooter>
                   <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
@@ -276,22 +271,13 @@ export default function ClientProjectsPage() {
           Array.from({ length: 2 }).map((_, i) => (
             <Card key={i}>
               <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-4 w-1/4" />
-                <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-20 w-full" />
-              </CardContent>
+              <CardContent className="space-y-4"><Skeleton className="h-4 w-1/4" /><Skeleton className="h-8 w-full" /><Skeleton className="h-20 w-full" /></CardContent>
             </Card>
           ))
         ) : projects.length > 0 ? (
-          projects.map(project => <ProjectCard key={project.id} project={project} onUpdate={fetchProjects} />)
+          projects.map(project => <ProjectCard key={project.id} project={project} onDataChange={fetchProjects} />)
         ) : (
-          <Card>
-            <CardContent className="pt-6 text-center text-muted-foreground">
-              <p>No projects found for this client.</p>
-              <p>Click "New Project" to get started.</p>
-            </CardContent>
-          </Card>
+          <Card><CardContent className="pt-6 text-center text-muted-foreground"><p>No projects found for this client.</p><p>Click "New Project" to get started.</p></CardContent></Card>
         )}
       </div>
     </AdminLayout>
