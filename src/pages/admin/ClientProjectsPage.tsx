@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
@@ -130,7 +130,7 @@ const MilestoneModal = ({
               <div className="space-y-2 mt-2">
                 {fields.map((field, index) => (
                   <div key={field.id} className="flex items-center justify-between text-sm bg-muted p-2 rounded-md">
-                    <a href={field.value} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{field.value}</a>
+                    <a href={form.getValues(`files.${index}`)} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{form.getValues(`files.${index}`)}</a>
                     <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><X className="h-4 w-4" /></Button>
                   </div>
                 ))}
@@ -216,7 +216,7 @@ const ProjectCard = ({ project, onDataChange }: { project: ProjectWithMilestones
                   <div key={milestone.id} className="flex items-center justify-between p-2 rounded-md border group">
                     <div className="flex items-center gap-2">
                       <p className="font-medium">{milestone.title}</p>
-                      {milestone.files.length > 0 && (
+                      {milestone.files && milestone.files.length > 0 && (
                         <span className="flex items-center text-xs text-muted-foreground">
                           <Paperclip className="h-3 w-3 mr-1" /> {milestone.files.length}
                         </span>
