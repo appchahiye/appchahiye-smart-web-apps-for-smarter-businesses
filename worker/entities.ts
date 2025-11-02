@@ -1,5 +1,5 @@
 import { Entity, IndexedEntity } from "./core-utils";
-import type { WebsiteContent, User, Client, Project, Milestone, Invoice, Message } from "@shared/types";
+import type { WebsiteContent, User, Client, Project, Milestone, Invoice, Message, FormSubmission } from "@shared/types";
 import type { Env } from './core-utils';
 const MOCK_WEBSITE_CONTENT: WebsiteContent = {
   hero: { headline: "Your Business, Simplified.", subheadline: "We build smart web apps that help your business run smoother, faster, and smarter.", imageUrl: "https://framerusercontent.com/images/3X5p25sTzE2bH5L3u3Ceo8nZpU.png" },
@@ -131,5 +131,19 @@ export class MessageEntity extends IndexedEntity<Message> {
     content: '',
     attachments: [],
     createdAt: 0,
+  };
+}
+// --- Form Submission Entity ---
+export class FormSubmissionEntity extends IndexedEntity<FormSubmission> {
+  static readonly entityName = "formSubmission";
+  static readonly indexName = "formSubmissions";
+  static readonly initialState: FormSubmission = {
+    id: '',
+    name: '',
+    email: '',
+    company: '',
+    projectDescription: '',
+    features: '',
+    submittedAt: 0,
   };
 }

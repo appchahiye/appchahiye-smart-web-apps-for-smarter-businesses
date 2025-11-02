@@ -10,9 +10,9 @@ import {
   Settings,
   PanelLeft,
   MessageSquare,
-  Briefcase,
   LogOut,
   Receipt,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
@@ -22,6 +22,7 @@ const navItems = [
   { href: "/admin/leads", icon: Users, label: "Leads / Clients" },
   { href: "/admin/invoices", icon: Receipt, label: "Invoices" },
   { href: "/admin/chat", icon: MessageSquare, label: "Chat" },
+  { href: "/admin/forms", icon: ClipboardList, label: "Filled Forms" },
   { href: "/admin/analytics", icon: LineChart, label: "Analytics" },
   { href: "/admin/settings", icon: Settings, label: "Settings" },
 ];

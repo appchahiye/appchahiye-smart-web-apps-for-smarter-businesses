@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Menu,
   ArrowRight,
@@ -12,18 +18,18 @@ import {
   Cloud,
   Scaling,
   Cpu,
-  CheckCircle,
   Instagram,
   Facebook,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api-client';
 import type { WebsiteContent } from '@shared/types';
 import { GetStartedModal } from '@/components/GetStartedModal';
+import { Toaster, toast } from '@/components/ui/sonner';
 const navLinks = [
   { name: 'How It Works', href: '#how-it-works' },
   { name: 'Portfolio', href: '#portfolio' },
-  { name: 'Pricing', href: '#pricing' },
   { name: 'Contact', href: '#contact' },
 ];
 const AppLogo = () => (
@@ -190,42 +196,6 @@ const PortfolioSection = ({ content }: { content?: WebsiteContent['portfolio'] }
         </div>
     </section>
 );
-const PricingSection = ({ content, onGetStartedClick }: { content?: WebsiteContent['pricing'], onGetStartedClick: () => void }) => (
-    <section id="pricing" className="py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-                <h2 className="text-3xl md:text-4xl font-bold font-display">Simple, Transparent Pricing</h2>
-                <p className="mt-4 text-lg text-muted-foreground">Choose the plan that's right for your business.</p>
-            </div>
-            <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {(content || Array(3).fill(null)).map((tier, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.5, delay: index * 0.1 }}>
-                        <Card className={cn("flex flex-col h-full", tier?.popular && "border-deep-violet ring-2 ring-deep-violet")}>
-                            {tier?.popular && <div className="bg-gradient-brand text-white text-center py-1.5 text-sm font-semibold rounded-t-lg">Most Popular</div>}
-                            <CardHeader>
-                                {tier ? <CardTitle className="text-2xl">{tier.name}</CardTitle> : <Skeleton className="h-8 w-32" />}
-                                {tier ? <p className="text-4xl font-bold pt-4">{tier.price}</p> : <Skeleton className="h-10 w-24 mt-4" />}
-                            </CardHeader>
-                            <CardContent className="flex-1 flex flex-col">
-                                <ul className="space-y-4 text-muted-foreground flex-1">
-                                    {(tier?.features || Array(3).fill(null)).map((feature, i) => (
-                                        <li key={i} className="flex items-center">
-                                            <CheckCircle className="w-5 h-5 text-deep-violet mr-2" />
-                                            {feature ? <span>{feature}</span> : <Skeleton className="h-5 w-40" />}
-                                        </li>
-                                    ))}
-                                </ul>
-                                <Button onClick={onGetStartedClick} className={cn("w-full mt-8", tier?.popular ? "bg-gradient-brand text-white" : "")} variant={tier?.popular ? "default" : "outline"}>
-                                    {tier ? (tier.name === "Enterprise" ? "Request Custom Quote" : "Get Started") : <Skeleton className="h-6 w-32" />}
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                ))}
-            </div>
-        </div>
-    </section>
-);
 const TestimonialsSection = ({ content }: { content?: WebsiteContent['testimonials'] }) => (
     <section id="testimonials" className="py-16 md:py-24 bg-muted/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -263,28 +233,79 @@ const TestimonialsSection = ({ content }: { content?: WebsiteContent['testimonia
         </div>
     </section>
 );
-const CtaSection = ({ content, onGetStartedClick }: { content?: WebsiteContent['finalCta'], onGetStartedClick: () => void }) => (
-    <section id="contact" className="py-20 md:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative rounded-2xl bg-gradient-brand p-12 text-center text-white overflow-hidden">
-                {content ? (
-                    <>
-                        <h2 className="text-3xl md:text-4xl font-bold font-display">{content.headline}</h2>
-                        <p className="mt-4 text-lg max-w-2xl mx-auto opacity-90">{content.subheadline}</p>
-                    </>
-                ) : (
-                    <>
-                        <Skeleton className="h-12 w-3/4 mx-auto bg-white/20" />
-                        <Skeleton className="h-6 w-1/2 mx-auto mt-4 bg-white/20" />
-                    </>
-                )}
-                <Button onClick={onGetStartedClick} size="lg" variant="outline" className="mt-8 bg-white text-deep-violet hover:bg-white/90 font-bold px-8 py-3">
-                    Start Your Project <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-            </div>
+const requirementsFormSchema = z.object({
+  name: z.string().min(2, 'Name is required'),
+  email: z.string().email('A valid email is required'),
+  company: z.string().min(2, 'Company name is required'),
+  projectDescription: z.string().min(10, 'Please describe your project in a bit more detail'),
+  features: z.string().min(10, 'Please list at least one desired feature'),
+});
+type RequirementsFormValues = z.infer<typeof requirementsFormSchema>;
+const RequirementsFormSection = () => {
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<RequirementsFormValues>({
+    resolver: zodResolver(requirementsFormSchema),
+  });
+  const onSubmit = async (data: RequirementsFormValues) => {
+    try {
+      await api('/api/forms/submit', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      toast.success('Thank you! Your requirements have been submitted. We will get back to you shortly.');
+      reset();
+    } catch (error) {
+      toast.error('Something went wrong. Please try again.');
+    }
+  };
+  return (
+    <section id="contact" className="py-16 md:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="lg:pr-12">
+            <h2 className="text-3xl md:text-4xl font-bold font-display">Tell Us About Your Project</h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Fill out the form to give us a better understanding of your needs. The more detail you provide, the better we can assist you. Let's build something amazing together!
+            </p>
+          </div>
+          <Card className="p-6 md:p-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input id="name" {...register('name')} className="mt-2" />
+                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input id="email" type="email" {...register('email')} className="mt-2" />
+                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="company">Company Name</Label>
+                <Input id="company" {...register('company')} className="mt-2" />
+                {errors.company && <p className="text-red-500 text-sm mt-1">{errors.company.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="projectDescription">Project Description</Label>
+                <Textarea id="projectDescription" {...register('projectDescription')} rows={4} className="mt-2" placeholder="Describe the main purpose and goals of your web app." />
+                {errors.projectDescription && <p className="text-red-500 text-sm mt-1">{errors.projectDescription.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="features">Desired Features</Label>
+                <Textarea id="features" {...register('features')} rows={4} className="mt-2" placeholder="List key features you need, e.g., user login, dashboard, payment processing, etc." />
+                {errors.features && <p className="text-red-500 text-sm mt-1">{errors.features.message}</p>}
+              </div>
+              <Button type="submit" className="w-full bg-gradient-brand text-white" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit Requirements'}
+              </Button>
+            </form>
+          </Card>
         </div>
+      </div>
     </section>
-);
+  );
+};
 const Footer = () => (
     <footer className="bg-background border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -321,6 +342,7 @@ export function HomePage() {
   const handleCloseModal = () => setIsModalOpen(false);
   return (
     <div className="bg-background text-foreground">
+      <Toaster richColors />
       <GetStartedModal isOpen={isModalOpen} onClose={handleCloseModal} />
       <Header onGetStartedClick={handleGetStartedClick} />
       <main>
@@ -328,9 +350,8 @@ export function HomePage() {
         <HowItWorksSection content={content?.howItWorks} />
         <WhyChooseUsSection content={content?.whyChooseUs} />
         <PortfolioSection content={content?.portfolio} />
-        <PricingSection content={content?.pricing} onGetStartedClick={handleGetStartedClick} />
         <TestimonialsSection content={content?.testimonials} />
-        <CtaSection content={content?.finalCta} onGetStartedClick={handleGetStartedClick} />
+        <RequirementsFormSection />
       </main>
       <Footer />
     </div>
