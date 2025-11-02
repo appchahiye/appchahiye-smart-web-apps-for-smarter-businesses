@@ -19,13 +19,12 @@ import type { InvoiceWithClientInfo, Client, User } from '@shared/types';
 import { PlusCircle, MoreHorizontal, Loader2 } from 'lucide-react';
 import { Toaster, toast } from '@/components/ui/sonner';
 type ClientWithUser = Client & { user?: User };
-// Per client feedback, amount is optional to align with defaultValues: undefined
 const invoiceFormSchema = z.object({
   clientId: z.string().min(1, 'Client is required'),
-  amount: z.coerce
-    .number({ invalid_type_error: 'Amount must be a number' })
-    .positive('Amount must be a positive number')
-    .optional(),
+  amount: z.coerce.number({
+    required_error: "Amount is required.",
+    invalid_type_error: "Amount must be a number.",
+  }).positive({ message: "Amount must be a positive number." }),
 });
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 export default function InvoicesPage() {
@@ -66,10 +65,6 @@ export default function InvoicesPage() {
     }
   };
   const onSubmit = async (values: InvoiceFormValues) => {
-    if (!values.amount) {
-        form.setError("amount", { type: "manual", message: "Amount is required." });
-        return;
-    }
     try {
       await api(`/api/admin/clients/${values.clientId}/invoices`, {
         method: 'POST',
@@ -113,7 +108,16 @@ export default function InvoicesPage() {
                 <FormField control={form.control} name="amount" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Amount ($)</FormLabel>
-                    <FormControl><Input type="number" step="0.01" placeholder="e.g., 999.99" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.value)} /></FormControl>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g., 999.99"
+                        {...field}
+                        onChange={e => field.onChange(e.target.valueAsNumber)}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
