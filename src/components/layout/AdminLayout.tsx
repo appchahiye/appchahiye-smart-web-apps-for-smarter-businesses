@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
+import { AppLogo } from "../AppLogo";
+import { useContentStore } from "@/stores/contentStore";
+import { useDynamicAssets } from "@/hooks/use-dynamic-assets";
 const navItems = [
   { href: "/admin", icon: Home, label: "Dashboard" },
   { href: "/admin/content", icon: FileText, label: "Content" },
@@ -37,8 +40,7 @@ const NavContent = () => {
     <div className="flex flex-col h-full">
       <div className="flex h-16 items-center border-b px-6">
         <NavLink to="/admin" className="flex items-center gap-2 font-semibold">
-          <div className="h-6 w-6 rounded-md bg-gradient-brand" />
-          <span className="">AppChahiye Admin</span>
+          <AppLogo />
         </NavLink>
       </div>
       <nav className="flex-1 grid items-start gap-1 p-4 text-sm font-medium">
@@ -69,6 +71,11 @@ const NavContent = () => {
   );
 };
 export function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { content, fetchContent } = useContentStore();
+  useEffect(() => {
+    fetchContent();
+  }, [fetchContent]);
+  useDynamicAssets(content?.brandAssets, content?.seoMetadata);
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 lg:block">

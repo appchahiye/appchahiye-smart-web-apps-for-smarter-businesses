@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api-client";
-import type { ClientProfile } from "@shared/types";
+import type { ClientProfile, NotificationPreferences } from "@shared/types";
 import { Toaster, toast } from "@/components/ui/sonner";
 import { Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -34,6 +34,7 @@ export default function ClientAccountPage() {
   const { clientId } = useParams<{ clientId: string }>();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<ClientProfile | null>(null);
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>({ projectUpdates: true, newMessages: true });
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
   });
@@ -43,16 +44,18 @@ export default function ClientAccountPage() {
   useEffect(() => {
     if (clientId) {
       setIsLoading(true);
-      api<ClientProfile>(`/api/portal/${clientId}/account`)
-        .then(data => {
-          setProfileData(data);
-          profileForm.reset({ name: data.name, company: data.company, avatarUrl: data.avatarUrl });
-          setIsLoading(false);
-        })
-        .catch(() => {
-          toast.error("Failed to load account details.");
-          setIsLoading(false);
-        });
+      Promise.all([
+        api<ClientProfile>(`/api/portal/${clientId}/account`),
+        api<NotificationPreferences>(`/api/portal/${clientId}/notifications`),
+      ]).then(([profile, prefs]) => {
+        setProfileData(profile);
+        setNotificationPrefs(prefs);
+        profileForm.reset({ name: profile.name, company: profile.company, avatarUrl: profile.avatarUrl });
+      }).catch(() => {
+        toast.error("Failed to load account details.");
+      }).finally(() => {
+        setIsLoading(false);
+      });
     }
   }, [clientId, profileForm]);
   const onProfileSubmit = async (data: ProfileFormValues) => {
@@ -80,6 +83,21 @@ export default function ClientAccountPage() {
       passwordForm.reset({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to change password.");
+    }
+  };
+  const handleNotificationChange = async (key: keyof NotificationPreferences, value: boolean) => {
+    const newPrefs = { ...notificationPrefs, [key]: value };
+    setNotificationPrefs(newPrefs);
+    try {
+      await api(`/api/portal/${clientId}/notifications`, {
+        method: 'PUT',
+        body: JSON.stringify(newPrefs),
+      });
+      toast.success('Notification preferences updated.');
+    } catch (error) {
+      toast.error('Failed to update preferences.');
+      // Revert on failure
+      setNotificationPrefs(prev => ({ ...prev, [key]: !value }));
     }
   };
   return (
@@ -174,14 +192,14 @@ export default function ClientAccountPage() {
                 <p className="font-medium">Project Updates</p>
                 <p className="text-sm text-muted-foreground">Receive an email when a milestone is updated.</p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={notificationPrefs.projectUpdates} onCheckedChange={(checked) => handleNotificationChange('projectUpdates', checked)} />
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <div>
                 <p className="font-medium">New Messages</p>
                 <p className="text-sm text-muted-foreground">Get notified about new messages in the chat.</p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={notificationPrefs.newMessages} onCheckedChange={(checked) => handleNotificationChange('newMessages', checked)} />
             </div>
           </CardContent>
         </Card>

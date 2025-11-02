@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Env } from './core-utils';
 import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity, FormSubmissionEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission, AdminDashboardStats, AnalyticsData, ActivityItem } from "@shared/types";
+import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission, AdminDashboardStats, AnalyticsData, ActivityItem, NotificationPreferences } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
 // Generates a random, memorable password.
@@ -71,7 +71,11 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         email,
         role: 'client',
         passwordHash,
-        avatarUrl: `https://i.pravatar.cc/150?u=${userId}`
+        avatarUrl: `https://i.pravatar.cc/150?u=${userId}`,
+        notificationPreferences: {
+          projectUpdates: true,
+          newMessages: true,
+        }
       };
       await UserEntity.create(c.env, newUser);
       const newClient: Client = {
@@ -135,6 +139,19 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       user: usersById.get(client.userId)
     }));
     return ok(c, clientsWithUsers);
+  });
+  app.put('/api/admin/clients/:clientId/status', async (c) => {
+    const { clientId } = c.req.param();
+    const { status } = await c.req.json<{ status: Client['status'] }>();
+    if (!status || !['pending', 'active', 'completed'].includes(status)) {
+      return bad(c, 'Invalid status provided.');
+    }
+    const clientEntity = new ClientEntity(c.env, clientId);
+    if (!(await clientEntity.exists())) {
+      return notFound(c, 'Client not found.');
+    }
+    await clientEntity.patch({ status });
+    return ok(c, { message: 'Client status updated successfully.' });
   });
   app.get('/api/admin/clients/:clientId/projects', async (c) => {
     const { clientId } = c.req.param();
@@ -347,6 +364,25 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const newPasswordHash = await mockHash(newPassword);
     await userEntity.patch({ passwordHash: newPasswordHash });
     return ok(c, { message: 'Password changed successfully' });
+  });
+  app.get('/api/portal/:clientId/notifications', async (c) => {
+    const { clientId } = c.req.param();
+    const userEntity = new UserEntity(c.env, clientId);
+    if (!(await userEntity.exists())) {
+      return notFound(c, 'User not found');
+    }
+    const user = await userEntity.getState();
+    return ok(c, user.notificationPreferences || { projectUpdates: true, newMessages: true });
+  });
+  app.put('/api/portal/:clientId/notifications', async (c) => {
+    const { clientId } = c.req.param();
+    const prefs = await c.req.json<NotificationPreferences>();
+    const userEntity = new UserEntity(c.env, clientId);
+    if (!(await userEntity.exists())) {
+      return notFound(c, 'User not found');
+    }
+    await userEntity.patch({ notificationPreferences: prefs });
+    return ok(c, { message: 'Preferences updated.' });
   });
   // --- Website Content Management ---
   app.get('/api/content', async (c) => {
