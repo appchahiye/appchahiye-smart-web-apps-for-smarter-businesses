@@ -10,13 +10,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { api } from '@/lib/api-client';
 import type { InvoiceWithClientInfo, Client, User } from '@shared/types';
-import { PlusCircle, MoreHorizontal, Loader2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Loader2, Trash2 } from 'lucide-react';
 import { Toaster, toast } from '@/components/ui/sonner';
 type ClientWithUser = Client & { user?: User };
 const invoiceFormSchema = z.object({
@@ -59,6 +60,15 @@ export default function InvoicesPage() {
       fetchInvoices();
     } catch (error) {
       toast.error('Failed to update status.');
+    }
+  };
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    try {
+      await api(`/api/admin/invoices/${invoiceId}`, { method: 'DELETE' });
+      toast.success('Invoice deleted successfully!');
+      fetchInvoices();
+    } catch (error) {
+      toast.error('Failed to delete invoice.');
     }
   };
   const onSubmit = async (values: InvoiceFormValues) => {
@@ -106,12 +116,7 @@ export default function InvoicesPage() {
                   <FormItem>
                     <FormLabel>Amount (PKR)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="e.g., 999.99"
-                        {...field}
-                      />
+                      <Input type="number" step="0.01" placeholder="e.g., 999.99" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -163,13 +168,29 @@ export default function InvoicesPage() {
                     <TableCell><Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>{invoice.status}</Badge></TableCell>
                     <TableCell>{format(new Date(invoice.issuedAt), 'PPP')}</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'paid')} disabled={invoice.status === 'paid'}>Mark as Paid</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'pending')} disabled={invoice.status === 'pending'}>Mark as Pending</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'paid')} disabled={invoice.status === 'paid'}>Mark as Paid</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'pending')} disabled={invoice.status === 'pending'}>Mark as Pending</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem className="text-red-600"><Trash2 className="mr-2 h-4 w-4" /> Delete</DropdownMenuItem>
+                            </AlertDialogTrigger>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>This action cannot be undone. This will permanently delete the invoice.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteInvoice(invoice.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))
