@@ -61,7 +61,7 @@ export default function ClientInvoicesPage() {
                 invoices.map(invoice => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-mono text-sm">{invoice.id.substring(0, 8)}</TableCell>
-                    <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                    <TableCell>PKR {invoice.amount.toFixed(2)}</TableCell>
                     <TableCell><Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>{invoice.status}</Badge></TableCell>
                     <TableCell>{format(new Date(invoice.issuedAt), 'PPP')}</TableCell>
                     <TableCell className="text-right">
