@@ -1,41 +1,50 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import useEmblaCarousel from 'embla-carousel-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
-  Menu,
-  ArrowRight,
-  Workflow,
-  Cloud,
-  Scaling,
-  Cpu,
-  Instagram,
-  Facebook,
-  Loader2,
+  Menu, ArrowRight, Workflow, Cloud, Scaling, Cpu, Instagram, Facebook, Loader2, Quote, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { api } from '@/lib/api-client';
 import type { WebsiteContent } from '@shared/types';
 import { GetStartedModal } from '@/components/GetStartedModal';
 import { Toaster, toast } from '@/components/ui/sonner';
 import { useContentStore } from '@/stores/contentStore';
 import { useDynamicAssets } from '@/hooks/use-dynamic-assets';
 import { AppLogo } from '@/components/AppLogo';
-const navLinks = [
-  { name: 'How It Works', href: '#how-it-works' },
-  { name: 'Portfolio', href: '#portfolio' },
-  { name: 'Contact', href: '#contact' },
-];
+import { api } from '@/lib/api-client';
+const MotionCard = motion(Card);
+const Section = ({ children, className, ...props }: React.ComponentProps<typeof motion.section>) => (
+  <motion.section
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.3 }}
+    transition={{ duration: 0.6, ease: "easeOut" }}
+    className={cn("py-20 md:py-28 lg:py-32", className)}
+    {...props}
+  >
+    {children}
+  </motion.section>
+);
+const SectionEyebrow = ({ children }: { children: React.ReactNode }) => (
+  <p className="mb-4 text-center text-sm font-semibold uppercase tracking-widest text-deep-violet">{children}</p>
+);
+const SectionHeading = ({ children }: { children: React.ReactNode }) => (
+  <h2 className="text-center text-4xl md:text-5xl font-bold font-display tracking-tight">{children}</h2>
+);
+const SectionSubheading = ({ children }: { children: React.ReactNode }) => (
+  <p className="mt-4 text-center text-lg max-w-3xl mx-auto text-muted-foreground">{children}</p>
+);
 const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -43,6 +52,11 @@ const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  const navLinks = [
+    { name: 'How It Works', href: '#how-it-works' },
+    { name: 'Portfolio', href: '#portfolio' },
+    { name: 'Contact', href: '#contact' },
+  ];
   return (
     <header className={cn('fixed top-0 left-0 right-0 z-50 transition-all duration-300', scrolled ? 'bg-background/80 backdrop-blur-lg border-b' : 'bg-transparent')}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,195 +91,242 @@ const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
   );
 };
 const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent['hero'], onGetStartedClick: () => void }) => {
-  const handleSeeExamples = () => {
-    document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const handleSeeExamples = () => document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth' });
   return (
-    <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 text-center overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-electric-blue/20 via-deep-violet/20 to-background -z-10"></div>
+    <section className="relative pt-40 pb-20 md:pt-48 md:pb-32 text-center overflow-hidden">
+      <div className="absolute top-0 left-0 -z-10 h-full w-full bg-gradient-soft-light dark:bg-gradient-soft-dark"></div>
+      <div className="glow-orb w-96 h-96 bg-deep-violet/50 -top-40 -left-40 animate-blob-spin"></div>
+      <div className="glow-orb w-96 h-96 bg-electric-blue/50 -bottom-40 -right-40 animate-blob-spin [animation-delay:5s]"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           {content ? (
             <>
-              <h1 className="text-4xl md:text-6xl font-bold font-display tracking-tight text-foreground" dangerouslySetInnerHTML={{ __html: content.headline.replace('Simplified.', '<span class="text-transparent bg-clip-text bg-gradient-brand">Simplified.</span>') }}></h1>
-              <p className="mt-6 text-lg md:text-xl max-w-3xl mx-auto text-muted-foreground">{content.subheadline}</p>
+              <h1 className="text-5xl md:text-7xl font-bold font-display tracking-tight text-foreground" dangerouslySetInnerHTML={{ __html: content.headline.replace('Simplified.', '<span class="text-gradient-animated">Simplified.</span>') }}></h1>
+              <p className="mt-6 text-lg md:text-xl max-w-3xl mx-auto text-muted-foreground leading-relaxed">{content.subheadline}</p>
             </>
           ) : (
             <>
-              <Skeleton className="h-16 w-3/4 mx-auto" />
+              <Skeleton className="h-20 w-3/4 mx-auto" />
               <Skeleton className="h-6 w-1/2 mx-auto mt-6" />
             </>
           )}
-          <div className="mt-10 flex justify-center gap-4">
-            <Button onClick={onGetStartedClick} size="lg" className="bg-gradient-brand text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg hover:shadow-xl">Get Started</Button>
-            <Button onClick={handleSeeExamples} size="lg" variant="outline" className="px-8 py-3">See Examples</Button>
+          <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+            <Button onClick={onGetStartedClick} size="lg" className="bg-gradient-brand text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg hover:shadow-soft-glow">Get Started</Button>
+            <Button onClick={handleSeeExamples} size="lg" variant="ghost" className="px-8 py-3">See Examples</Button>
           </div>
         </motion.div>
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.3 }} className="mt-16">
-          <div className="relative mx-auto w-full max-w-4xl">
-            <div className="absolute -inset-2 rounded-xl bg-gradient-brand opacity-10 blur-xl"></div>
-            {content ? <img src={content.imageUrl} alt="Dashboard Mockup" className="relative rounded-xl shadow-lg border" /> : <Skeleton className="w-full aspect-video rounded-xl" />}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3, type: 'spring', stiffness: 100 }}
+          className="mt-20"
+        >
+          <div className="relative mx-auto w-full max-w-5xl group [perspective:1000px]">
+            <motion.div
+              className="relative rounded-xl border shadow-2xl shadow-deep-violet/10 animate-float-subtle"
+              whileHover={{ scale: 1.02, rotateX: 5, rotateY: -5, transition: { duration: 0.3 } }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              {content ? <img src={content.imageUrl} alt="Dashboard Mockup" className="relative rounded-xl" /> : <Skeleton className="w-full aspect-video rounded-xl" />}
+            </motion.div>
           </div>
         </motion.div>
       </div>
     </section>
   );
 };
+const LogosSection = () => (
+  <div className="py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <p className="text-center text-sm font-semibold text-muted-foreground tracking-wider">TRUSTED BY BUSINESSES WORLDWIDE</p>
+      <div className="mt-6 grid grid-cols-2 gap-8 md:grid-cols-6 lg:grid-cols-5">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="col-span-1 flex justify-center md:col-span-2 lg:col-span-1">
+            <Skeleton className="h-10 w-28" />
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 const HowItWorksSection = ({ content }: { content?: WebsiteContent['howItWorks'] }) => {
-    const icons = [Workflow, Cpu, Cloud];
-    return (
-        <section id="how-it-works" className="py-16 md:py-24 bg-muted/40">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold font-display">How It Works</h2>
-                    <p className="mt-4 text-lg text-muted-foreground">A simple 3-step process to get your custom app.</p>
-                </div>
-                <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-                    {(content || Array(3).fill(null)).map((step, index) => {
-                        const Icon = icons[index];
-                        return (
-                            <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.5, delay: index * 0.1 }} className="text-center">
-                                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-gradient-brand text-white shadow-lg"><Icon className="w-8 h-8" /></div>
-                                {step ? (
-                                    <>
-                                        <h3 className="text-xl font-semibold">{step.title}</h3>
-                                        <p className="mt-2 text-muted-foreground">{step.description}</p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Skeleton className="h-6 w-32 mx-auto" />
-                                        <Skeleton className="h-4 w-48 mx-auto mt-2" />
-                                    </>
-                                )}
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            </div>
-        </section>
-    );
+  const icons = [Workflow, Cpu, Cloud];
+  return (
+    <Section id="how-it-works" className="bg-muted/40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <SectionEyebrow>Our Process</SectionEyebrow>
+        <SectionHeading>How It Works</SectionHeading>
+        <SectionSubheading>A simple 3-step process to get your custom app, designed for clarity and efficiency.</SectionSubheading>
+        <div className="mt-20 relative">
+          <div className="absolute left-1/2 top-12 bottom-12 w-0.5 bg-border -translate-x-1/2 hidden md:block"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            {(content || Array(3).fill(null)).map((step, index) => {
+              const Icon = icons[index];
+              const isEven = index % 2 === 0;
+              return (
+                <React.Fragment key={index}>
+                  <div className={cn("md:col-start-1", isEven ? "" : "md:col-start-2")}>
+                    <motion.div
+                      initial={{ opacity: 0, x: isEven ? -50 : 50 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true, amount: 0.5 }}
+                      transition={{ duration: 0.6 }}
+                      className={cn("text-center md:text-left", isEven ? "" : "md:text-right")}
+                    >
+                      <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-gradient-brand text-white shadow-lg"><Icon className="w-8 h-8" /></div>
+                      {step ? (
+                        <>
+                          <h3 className="text-2xl font-semibold">{step.title}</h3>
+                          <p className="mt-2 text-muted-foreground">{step.description}</p>
+                        </>
+                      ) : (
+                        <>
+                          <Skeleton className="h-8 w-40 mx-auto md:mx-0" />
+                          <Skeleton className="h-5 w-64 mx-auto md:mx-0 mt-2" />
+                        </>
+                      )}
+                    </motion.div>
+                  </div>
+                  <div className="hidden md:block relative">
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background border-2 flex items-center justify-center">
+                      <div className="w-3 h-3 rounded-full bg-deep-violet"></div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
 };
 const WhyChooseUsSection = ({ content }: { content?: WebsiteContent['whyChooseUs'] }) => {
-    const icons = [Workflow, Cloud, Scaling, Cpu];
-    return (
-        <section id="features" className="py-16 md:py-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold font-display">Why Choose AppChahiye?</h2>
-                    <p className="mt-4 text-lg text-muted-foreground">The perfect solution for your business operations.</p>
-                </div>
-                <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {(content || Array(4).fill(null)).map((feature, index) => {
-                        const Icon = icons[index];
-                        return (
-                            <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.5, delay: index * 0.1 }}>
-                                <Card className="h-full hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                                    <CardHeader>
-                                        <div className="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-lg bg-gradient-brand text-white"><Icon className="w-6 h-6" /></div>
-                                        {feature ? <CardTitle>{feature.title}</CardTitle> : <Skeleton className="h-6 w-40" />}
-                                    </CardHeader>
-                                    <CardContent>
-                                        {feature ? <p className="text-muted-foreground">{feature.description}</p> : <Skeleton className="h-10 w-full" />}
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        );
-                    })}
-                </div>
-            </div>
-        </section>
-    );
+  const icons = [Workflow, Cloud, Scaling, Cpu];
+  return (
+    <Section id="features">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <SectionEyebrow>Features</SectionEyebrow>
+        <SectionHeading>Why Choose AppChahiye?</SectionHeading>
+        <SectionSubheading>The perfect solution for your business operations, built with cutting-edge technology.</SectionSubheading>
+        <div className="mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {(content || Array(4).fill(null)).map((feature, index) => {
+            const Icon = icons[index];
+            return (
+              <MotionCard
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(91, 46, 255, 0.2)' }}
+                className="h-full rounded-2xl"
+              >
+                <CardContent className="p-8">
+                  <div className="inline-flex items-center justify-center w-12 h-12 mb-6 rounded-lg bg-gradient-brand text-white"><Icon className="w-6 h-6" /></div>
+                  {feature ? <h3 className="text-xl font-semibold">{feature.title}</h3> : <Skeleton className="h-6 w-40" />}
+                  {feature ? <p className="mt-2 text-muted-foreground">{feature.description}</p> : <Skeleton className="h-10 w-full mt-2" />}
+                </CardContent>
+              </MotionCard>
+            );
+          })}
+        </div>
+      </div>
+    </Section>
+  );
 };
 const PortfolioSection = ({ content }: { content?: WebsiteContent['portfolio'] }) => (
-    <section id="portfolio" className="py-16 md:py-24 bg-muted/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-                <h2 className="text-3xl md:text-4xl font-bold font-display">Our Work</h2>
-                <p className="mt-4 text-lg text-muted-foreground">See what we've built for businesses like yours.</p>
-            </div>
-            <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 gap-8">
-                {(content || Array(4).fill(null)).map((project, index) => (
-                    <Dialog key={index}>
-                        <DialogTrigger asChild>
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, amount: 0.5 }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="group relative overflow-hidden rounded-xl aspect-video cursor-pointer"
-                            >
-                                {project ? (
-                                    <>
-                                        <img src={project.image} alt={project.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
-                                        <div className="absolute bottom-0 left-0 p-6"><h3 className="text-white text-2xl font-bold">{project.name}</h3></div>
-                                    </>
-                                ) : <Skeleton className="w-full h-full" />}
-                            </motion.div>
-                        </DialogTrigger>
-                        {project && (
-                            <DialogContent className="sm:max-w-3xl">
-                                <DialogHeader>
-                                    <DialogTitle className="text-2xl">{project.name}</DialogTitle>
-                                    <DialogDescription>{project.description || "A custom web application built to streamline business operations."}</DialogDescription>
-                                </DialogHeader>
-                                <div className="mt-4">
-                                    <img src={project.image} alt={project.name} className="w-full rounded-lg" />
-                                </div>
-                            </DialogContent>
-                        )}
-                    </Dialog>
-                ))}
-            </div>
-        </div>
-    </section>
+  <Section id="portfolio" className="bg-muted/40">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <SectionEyebrow>Our Work</SectionEyebrow>
+      <SectionHeading>See What We've Built</SectionHeading>
+      <SectionSubheading>A glimpse into the custom solutions we've crafted for businesses like yours.</SectionSubheading>
+      <div className="mt-20 grid grid-cols-1 sm:grid-cols-2 gap-8">
+        {(content || Array(4).fill(null)).map((project, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            className="group relative overflow-hidden rounded-2xl"
+          >
+            {project ? (
+              <>
+                <img src={project.image} alt={project.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 p-8">
+                  <h3 className="text-white text-2xl font-bold">{project.name}</h3>
+                  <p className="text-white/80 mt-1">{project.description || "Custom Web Application"}</p>
+                </div>
+              </>
+            ) : <Skeleton className="w-full aspect-video" />}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </Section>
 );
-const TestimonialsSection = ({ content }: { content?: WebsiteContent['testimonials'] }) => (
-    <section id="testimonials" className="py-16 md:py-24 bg-muted/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center"><h2 className="text-3xl md:text-4xl font-bold font-display">Loved by Businesses Worldwide</h2></div>
-            <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {(content || Array(2).fill(null)).map((testimonial, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.5, delay: index * 0.1 }}>
-                        <Card className="h-full">
-                            <CardContent className="pt-6">
-                                {testimonial ? (
-                                    <>
-                                        <p className="text-lg">"{testimonial.text}"</p>
-                                        <div className="flex items-center mt-6">
-                                            <Avatar><AvatarImage src={testimonial.avatar} /><AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback></Avatar>
-                                            <div className="ml-4">
-                                                <p className="font-semibold">{testimonial.name}</p>
-                                                <p className="text-sm text-muted-foreground">{testimonial.company}</p>
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <Skeleton className="h-16 w-full" />
-                                        <div className="flex items-center gap-4">
-                                            <Skeleton className="h-12 w-12 rounded-full" />
-                                            <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-4 w-32" /></div>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                ))}
+const TestimonialsSection = ({ content }: { content?: WebsiteContent['testimonials'] }) => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
+  return (
+    <Section id="testimonials">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <SectionEyebrow>Testimonials</SectionEyebrow>
+        <SectionHeading>Loved by Businesses Worldwide</SectionHeading>
+        <div className="mt-20 relative">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex">
+              {(content || Array(2).fill(null)).map((testimonial, index) => (
+                <div key={index} className="flex-shrink-0 w-full lg:w-1/2 p-4">
+                  <Card className="h-full rounded-2xl">
+                    <CardContent className="p-8">
+                      {testimonial ? (
+                        <>
+                          <Quote className="w-8 h-8 text-deep-violet/50 mb-4" />
+                          <p className="text-lg text-foreground">"{testimonial.text}"</p>
+                          <div className="flex items-center mt-6">
+                            <Avatar><AvatarImage src={testimonial.avatar} /><AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback></Avatar>
+                            <div className="ml-4">
+                              <p className="font-semibold">{testimonial.name}</p>
+                              <p className="text-sm text-muted-foreground">{testimonial.company}</p>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="space-y-4">
+                          <Skeleton className="h-16 w-full" />
+                          <div className="flex items-center gap-4">
+                            <Skeleton className="h-12 w-12 rounded-full" />
+                            <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-4 w-32" /></div>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
             </div>
+          </div>
+          <div className="absolute top-1/2 -translate-y-1/2 flex justify-between w-full px-0 lg:-px-8">
+            <Button onClick={scrollPrev} variant="outline" size="icon" className="rounded-full h-12 w-12"><ChevronLeft /></Button>
+            <Button onClick={scrollNext} variant="outline" size="icon" className="rounded-full h-12 w-12"><ChevronRight /></Button>
+          </div>
         </div>
-    </section>
-);
+      </div>
+    </Section>
+  );
+};
 const requirementsFormSchema = z.object({
   name: z.string().min(2, 'Name is required'),
   email: z.string().email('A valid email is required'),
   company: z.string().min(2, 'Company name is required'),
   projectDescription: z.string().min(10, 'Please describe your project in a bit more detail'),
-  features: z.string().min(10, 'Please list at least one desired feature'),
 });
 type RequirementsFormValues = z.infer<typeof requirementsFormSchema>;
-const RequirementsFormSection = () => {
+const ContactSection = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<RequirementsFormValues>({
     resolver: zodResolver(requirementsFormSchema),
   });
@@ -273,25 +334,26 @@ const RequirementsFormSection = () => {
     try {
       await api('/api/forms/submit', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, features: 'N/A' }), // Add dummy features field
       });
-      toast.success('Thank you! Your requirements have been submitted. We will get back to you shortly.');
+      toast.success('Thank you! Your message has been sent. We will get back to you shortly.');
       reset();
     } catch (error) {
       toast.error('Something went wrong. Please try again.');
     }
   };
   return (
-    <section id="contact" className="py-16 md:py-24">
+    <Section id="contact" className="bg-muted/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="lg:pr-12">
-            <h2 className="text-3xl md:text-4xl font-bold font-display">Tell Us About Your Project</h2>
+            <SectionEyebrow>Contact Us</SectionEyebrow>
+            <SectionHeading>Ready to Simplify Your Business?</SectionHeading>
             <p className="mt-4 text-lg text-muted-foreground">
               Fill out the form to give us a better understanding of your needs. The more detail you provide, the better we can assist you. Let's build something amazing together!
             </p>
           </div>
-          <Card className="p-6 md:p-8">
+          <MotionCard className="p-8 md:p-10 rounded-2xl" whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(91, 46, 255, 0.2)' }}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
@@ -315,28 +377,23 @@ const RequirementsFormSection = () => {
                 <Textarea id="projectDescription" {...register('projectDescription')} rows={4} className="mt-2" placeholder="Describe the main purpose and goals of your web app." />
                 {errors.projectDescription && <p className="text-red-500 text-sm mt-1">{errors.projectDescription.message}</p>}
               </div>
-              <div>
-                <Label htmlFor="features">Desired Features</Label>
-                <Textarea id="features" {...register('features')} rows={4} className="mt-2" placeholder="List key features you need, e.g., user login, dashboard, payment processing, etc." />
-                {errors.features && <p className="text-red-500 text-sm mt-1">{errors.features.message}</p>}
-              </div>
               <Button type="submit" className="w-full bg-gradient-brand text-white" size="lg" disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit Requirements'}
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit Your Project'}
               </Button>
             </form>
-          </Card>
+          </MotionCard>
         </div>
       </div>
-    </section>
+    </Section>
   );
 };
 const Footer = () => (
     <footer className="bg-background border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div className="space-y-4">
+                <div className="space-y-4 col-span-1 md:col-span-2">
                     <a href="/" aria-label="Homepage"><AppLogo /></a>
-                    <p className="text-muted-foreground text-sm">Smart Web Apps for Smarter Businesses</p>
+                    <p className="text-muted-foreground text-sm max-w-xs">Smart Web Apps for Smarter Businesses</p>
                 </div>
             </div>
             <div className="mt-8 pt-8 border-t flex flex-col sm:flex-row justify-between items-center">
@@ -370,11 +427,12 @@ export function HomePage() {
       <Header onGetStartedClick={handleGetStartedClick} />
       <main>
         <HeroSection content={content?.hero} onGetStartedClick={handleGetStartedClick} />
+        <LogosSection />
         <HowItWorksSection content={content?.howItWorks} />
         <WhyChooseUsSection content={content?.whyChooseUs} />
         <PortfolioSection content={content?.portfolio} />
         <TestimonialsSection content={content?.testimonials} />
-        <RequirementsFormSection />
+        <ContactSection />
       </main>
       <Footer />
     </div>
