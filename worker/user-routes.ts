@@ -55,12 +55,10 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     if (!name || !email || !company || !projectType) {
       return bad(c, 'Missing required fields');
     }
-
     const { items: users } = await UserEntity.list(c.env);
     if (users.some(u => u.email === email)) {
       return bad(c, 'A user with this email already exists.');
     }
-
     try {
       const userId = crypto.randomUUID();
       const password_plaintext = generatePassword();
@@ -94,30 +92,24 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       return bad(c, 'An error occurred during registration.');
     }
   });
-
   // --- Client Login ---
   app.post('/api/clients/login', async (c) => {
     const { email, password } = await c.req.json<{ email: string; password: string }>();
     if (!email || !password) {
       return bad(c, 'Email and password are required');
     }
-
     const { items: users } = await UserEntity.list(c.env);
     const user = users.find(u => u.email === email);
-
     if (!user) {
       return bad(c, 'User not found');
     }
-
     const passwordHash = await mockHash(password);
     if (user.passwordHash !== passwordHash) {
       return bad(c, 'Invalid credentials');
     }
-
     if (user.role !== 'client') {
       return bad(c, 'Access denied');
     }
-
     const response: LoginResponse = {
       user: {
         id: user.id,
@@ -127,10 +119,8 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       },
       token: `mock-jwt-token-for-client-${user.id}`,
     };
-
     return ok(c, response);
   });
-
   // --- Admin: Client & Project Management ---
   app.get('/api/admin/clients', async (c) => {
     const { items: clients } = await ClientEntity.list(c.env);
@@ -324,5 +314,59 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await contentEntity.save(newContent);
     console.log('Content saved successfully.');
     return ok(c, { message: 'Content updated successfully' });
+  });
+  // --- DELETE Endpoints ---
+  app.delete('/api/admin/invoices/:invoiceId', async (c) => {
+    const { invoiceId } = c.req.param();
+    const deleted = await InvoiceEntity.delete(c.env, invoiceId);
+    if (!deleted) return notFound(c, 'Invoice not found');
+    return ok(c, { message: 'Invoice deleted' });
+  });
+  app.delete('/api/admin/milestones/:milestoneId', async (c) => {
+    const { milestoneId } = c.req.param();
+    const deleted = await MilestoneEntity.delete(c.env, milestoneId);
+    if (!deleted) return notFound(c, 'Milestone not found');
+    return ok(c, { message: 'Milestone deleted' });
+  });
+  app.delete('/api/admin/projects/:projectId', async (c) => {
+    const { projectId } = c.req.param();
+    const { items: allMilestones } = await MilestoneEntity.list(c.env);
+    const milestonesToDelete = allMilestones.filter(m => m.projectId === projectId).map(m => m.id);
+    await MilestoneEntity.deleteMany(c.env, milestonesToDelete);
+    const deleted = await ProjectEntity.delete(c.env, projectId);
+    if (!deleted) return notFound(c, 'Project not found');
+    return ok(c, { message: 'Project and its milestones deleted' });
+  });
+  app.delete('/api/chat/:clientId', async (c) => {
+    const { clientId } = c.req.param();
+    const { items: allMessages } = await MessageEntity.list(c.env);
+    const messagesToDelete = allMessages.filter(m => m.clientId === clientId).map(m => m.id);
+    const deletedCount = await MessageEntity.deleteMany(c.env, messagesToDelete);
+    return ok(c, { message: `${deletedCount} messages deleted` });
+  });
+  app.delete('/api/admin/clients/:clientId', async (c) => {
+    const { clientId } = c.req.param();
+    // 1. Delete Projects and their Milestones
+    const { items: allProjects } = await ProjectEntity.list(c.env);
+    const clientProjects = allProjects.filter(p => p.clientId === clientId);
+    const { items: allMilestones } = await MilestoneEntity.list(c.env);
+    for (const project of clientProjects) {
+      const milestonesToDelete = allMilestones.filter(m => m.projectId === project.id).map(m => m.id);
+      await MilestoneEntity.deleteMany(c.env, milestonesToDelete);
+      await ProjectEntity.delete(c.env, project.id);
+    }
+    // 2. Delete Invoices
+    const { items: allInvoices } = await InvoiceEntity.list(c.env);
+    const invoicesToDelete = allInvoices.filter(i => i.clientId === clientId).map(i => i.id);
+    await InvoiceEntity.deleteMany(c.env, invoicesToDelete);
+    // 3. Delete Chat Messages
+    const { items: allMessages } = await MessageEntity.list(c.env);
+    const messagesToDelete = allMessages.filter(m => m.clientId === clientId).map(m => m.id);
+    await MessageEntity.deleteMany(c.env, messagesToDelete);
+    // 4. Delete Client and User
+    const clientDeleted = await ClientEntity.delete(c.env, clientId);
+    await UserEntity.delete(c.env, clientId); // Assuming userId is same as clientId
+    if (!clientDeleted) return notFound(c, 'Client not found');
+    return ok(c, { message: 'Client and all associated data deleted' });
   });
 }
