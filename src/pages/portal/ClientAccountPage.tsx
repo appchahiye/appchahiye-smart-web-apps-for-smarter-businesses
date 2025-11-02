@@ -31,6 +31,7 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 export default function ClientAccountPage() {
   const { clientId } = useParams<{ clientId: string }>();
   const [isLoading, setIsLoading] = useState(true);
+  const [profileData, setProfileData] = useState<ClientProfile | null>(null);
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
   });
@@ -42,7 +43,8 @@ export default function ClientAccountPage() {
       setIsLoading(true);
       api<ClientProfile>(`/api/portal/${clientId}/account`)
         .then(data => {
-          profileForm.reset(data);
+          setProfileData(data);
+          profileForm.reset({ name: data.name, company: data.company });
           setIsLoading(false);
         })
         .catch(() => {
@@ -50,7 +52,7 @@ export default function ClientAccountPage() {
           setIsLoading(false);
         });
     }
-  }, [clientId, profileForm.reset]);
+  }, [clientId, profileForm]);
   const onProfileSubmit = async (data: ProfileFormValues) => {
     try {
       await api(`/api/portal/${clientId}/account`, {
@@ -102,7 +104,7 @@ export default function ClientAccountPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" defaultValue={profileForm.getValues('email')} disabled />
+                    <Input id="email" defaultValue={profileData?.email || ''} disabled />
                   </div>
                 </div>
                 <div className="space-y-2">

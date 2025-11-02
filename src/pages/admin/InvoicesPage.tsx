@@ -34,7 +34,6 @@ export default function InvoicesPage() {
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       clientId: '',
-      // amount: undefined, // This line is removed to fix the TS error. Zod's coerce will handle it.
     },
   });
   const fetchInvoices = useCallback(() => {

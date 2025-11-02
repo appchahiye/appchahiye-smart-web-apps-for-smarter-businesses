@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { ChatInterface } from "@/components/ChatInterface";
 export function ClientPortalLayout({ children }: { children: React.ReactNode }) {
   const { clientId } = useParams<{ clientId: string }>();
+  const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
   // This is a placeholder. In a real app, you'd get this from an auth context.
   const ADMIN_USER_ID = 'admin-user-01';
@@ -25,6 +26,10 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
     { href: `/portal/${clientId || ''}/files`, icon: FolderArchive, label: "Files" },
     { href: `/portal/${clientId || ''}/account`, icon: User, label: "Account" },
   ];
+  const handleLogout = () => {
+    // In a real app, you would clear client-side tokens/session here.
+    navigate('/portal/login');
+  };
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-60 flex-col border-r bg-background sm:flex">
@@ -56,7 +61,7 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </div>
           <div className="mt-auto p-4">
-             <Button variant="ghost" className="w-full justify-start">
+             <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
              </Button>
