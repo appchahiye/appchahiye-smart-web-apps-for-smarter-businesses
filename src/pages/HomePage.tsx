@@ -136,24 +136,6 @@ const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent[
     </section>
   );
 };
-const LogosSection = () => (
-  <div className="py-12">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <p className="text-center text-sm font-semibold text-muted-foreground tracking-wider">TRUSTED BY BUSINESSES WORLDWIDE</p>
-      <div className="mt-6 grid grid-cols-2 gap-8 md:grid-cols-6 lg:grid-cols-5 items-center">
-        {['Logoipsum', 'Acme Corp', 'Stark Inc', 'Wayne Ent', 'Globex'].map((name, i) => (
-          <div key={i} className="col-span-1 flex justify-center md:col-span-2 lg:col-span-1">
-            <img
-              src={`https://placehold.co/120x40/F7F3FF/6B7280?text=${name}&font=inter`}
-              alt={`${name} Logo`}
-              className="h-8 object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
 const HowItWorksSection = ({ content }: { content?: WebsiteContent['howItWorks'] }) => {
   const icons = [Workflow, Cpu, Cloud];
   return (
@@ -446,7 +428,6 @@ export function HomePage() {
       <Header onGetStartedClick={handleGetStartedClick} />
       <main>
         <HeroSection content={content?.hero} onGetStartedClick={handleGetStartedClick} />
-        <LogosSection />
         <HowItWorksSection content={content?.howItWorks} />
         <WhyChooseUsSection content={content?.whyChooseUs} />
         <PortfolioSection content={content?.portfolio} />
