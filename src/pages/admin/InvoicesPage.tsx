@@ -34,6 +34,7 @@ export default function InvoicesPage() {
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       clientId: '',
+      amount: 0,
     },
   });
   const fetchInvoices = useCallback(() => {
@@ -115,7 +116,7 @@ export default function InvoicesPage() {
                   <FormItem>
                     <FormLabel>Amount (PKR)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="e.g., 999.99" {...field} />
+                      <Input type="number" step="0.01" placeholder="e.g., 999.99" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
