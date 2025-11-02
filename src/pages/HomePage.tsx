@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -139,10 +140,14 @@ const LogosSection = () => (
   <div className="py-12">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <p className="text-center text-sm font-semibold text-muted-foreground tracking-wider">TRUSTED BY BUSINESSES WORLDWIDE</p>
-      <div className="mt-6 grid grid-cols-2 gap-8 md:grid-cols-6 lg:grid-cols-5">
-        {[...Array(5)].map((_, i) => (
+      <div className="mt-6 grid grid-cols-2 gap-8 md:grid-cols-6 lg:grid-cols-5 items-center">
+        {['Logoipsum', 'Acme Corp', 'Stark Inc', 'Wayne Ent', 'Globex'].map((name, i) => (
           <div key={i} className="col-span-1 flex justify-center md:col-span-2 lg:col-span-1">
-            <Skeleton className="h-10 w-28" />
+            <img 
+              src={`https://placehold.co/120x40/F7F3FF/6B7280?text=${name}&font=inter`} 
+              alt={`${name} Logo`} 
+              className="h-8 object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+            />
           </div>
         ))}
       </div>
@@ -243,25 +248,39 @@ const PortfolioSection = ({ content }: { content?: WebsiteContent['portfolio'] }
       <SectionSubheading>A glimpse into the custom solutions we've crafted for businesses like yours.</SectionSubheading>
       <div className="mt-20 grid grid-cols-1 sm:grid-cols-2 gap-8">
         {(content || Array(4).fill(null)).map((project, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="group relative overflow-hidden rounded-2xl"
-          >
-            {project ? (
-              <>
-                <img src={project.image} alt={project.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 p-8">
-                  <h3 className="text-white text-2xl font-bold">{project.name}</h3>
-                  <p className="text-white/80 mt-1">{project.description || "Custom Web Application"}</p>
+          <Dialog key={index}>
+            <DialogTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="group relative overflow-hidden rounded-2xl cursor-pointer"
+              >
+                {project ? (
+                  <>
+                    <img src={project.image} alt={project.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 p-8">
+                      <h3 className="text-white text-2xl font-bold">{project.name}</h3>
+                      <p className="text-white/80 mt-1">{project.description || "Custom Web Application"}</p>
+                    </div>
+                  </>
+                ) : <Skeleton className="w-full aspect-video" />}
+              </motion.div>
+            </DialogTrigger>
+            {project && (
+              <DialogContent className="sm:max-w-3xl">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">{project.name}</DialogTitle>
+                  <DialogDescription>{project.description || "A custom web application built to streamline business operations."}</DialogDescription>
+                </DialogHeader>
+                <div className="mt-4">
+                  <img src={project.image} alt={project.name} className="w-full rounded-lg border" />
                 </div>
-              </>
-            ) : <Skeleton className="w-full aspect-video" />}
-          </motion.div>
+              </DialogContent>
+            )}
+          </Dialog>
         ))}
       </div>
     </div>
@@ -334,7 +353,7 @@ const ContactSection = () => {
     try {
       await api('/api/forms/submit', {
         method: 'POST',
-        body: JSON.stringify({ ...data, features: 'N/A' }), // Add dummy features field
+        body: JSON.stringify(data),
       });
       toast.success('Thank you! Your message has been sent. We will get back to you shortly.');
       reset();
