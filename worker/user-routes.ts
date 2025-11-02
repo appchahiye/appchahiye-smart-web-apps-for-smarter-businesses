@@ -7,7 +7,7 @@ import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, C
 const mockHash = async (password: string) => `hashed_${password}`;
 // Generates a random, memorable password.
 const generatePassword = (length = 10) => {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01223456789';
   let password = '';
   for (let i = 0; i < length; i++) {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -19,8 +19,19 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.post('/api/admin/login', async (c) => {
     const { email, password } = await c.req.json();
     if (email === 'appchahiye@gmail.com' && password === 'Eiahta@840') {
+      const adminId = 'admin-user-01';
+      const adminUserEntity = new UserEntity(c.env, adminId);
+      if (!(await adminUserEntity.exists())) {
+        await UserEntity.create(c.env, {
+          id: adminId,
+          email: 'appchahiye@gmail.com',
+          name: 'Admin User',
+          role: 'admin',
+          passwordHash: await mockHash('Eiahta@840'),
+        });
+      }
       const user: LoginResponse['user'] = {
-        id: 'admin-user-01',
+        id: adminId,
         email: 'appchahiye@gmail.com',
         name: 'Admin User',
         role: 'admin',
@@ -192,9 +203,9 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const conversationMessages = allMessages.filter(m => m.clientId === clientId);
     const { items: allUsers } = await UserEntity.list(c.env);
     const usersById = new Map(allUsers.map(u => [u.id, u]));
-    const adminUser = allUsers.find(u => u.role === 'admin'); // Assuming one admin for now
-    if (!adminUser) { // Add admin user if not exists
-        const admin: User = { id: 'admin-user-01', email: 'appchahiye@gmail.com', name: 'Admin User', role: 'admin', passwordHash: '' };
+    const adminId = 'admin-user-01';
+    if (!usersById.has(adminId)) {
+        const admin: User = { id: adminId, email: 'appchahiye@gmail.com', name: 'Admin User', role: 'admin', passwordHash: '' };
         await UserEntity.create(c.env, admin);
         usersById.set(admin.id, admin);
     }
