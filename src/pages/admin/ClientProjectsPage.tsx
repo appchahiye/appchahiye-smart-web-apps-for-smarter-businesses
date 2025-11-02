@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
@@ -20,7 +20,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { DatePicker } from '@/components/DatePicker';
 import { api } from '@/lib/api-client';
 import type { Project, Milestone, ProjectWithMilestones } from '@shared/types';
-import { PlusCircle, MoreVertical, Edit, Trash2, Loader2 } from 'lucide-react';
+import { PlusCircle, MoreVertical, Edit, Trash2, Loader2, Paperclip, X } from 'lucide-react';
 import { Toaster, toast } from '@/components/ui/sonner';
 const projectSchema = z.object({
   title: z.string().min(3, 'Project title must be at least 3 characters long'),
@@ -30,6 +30,7 @@ const milestoneSchema = z.object({
   description: z.string().optional(),
   status: z.enum(['todo', 'in_progress', 'completed']),
   dueDate: z.date().optional().nullable(),
+  files: z.array(z.string().url("Must be a valid URL.")),
 });
 type ProjectFormValues = z.infer<typeof projectSchema>;
 type MilestoneFormValues = z.infer<typeof milestoneSchema>;
@@ -45,6 +46,7 @@ const MilestoneModal = ({
   children: React.ReactNode;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [fileUrl, setFileUrl] = useState('');
   const form = useForm<MilestoneFormValues>({
     resolver: zodResolver(milestoneSchema),
     defaultValues: {
@@ -52,8 +54,21 @@ const MilestoneModal = ({
       description: milestone?.description || '',
       status: milestone?.status || 'todo',
       dueDate: milestone?.dueDate ? new Date(milestone.dueDate) : undefined,
+      files: milestone?.files || [],
     },
   });
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "files"
+  });
+  const handleAddFile = () => {
+    if (fileUrl && z.string().url().safeParse(fileUrl).success) {
+      append(fileUrl);
+      setFileUrl('');
+    } else {
+      toast.error('Please enter a valid URL.');
+    }
+  };
   const onSubmit = async (values: MilestoneFormValues) => {
     const payload = {
       ...values,
@@ -77,7 +92,7 @@ const MilestoneModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{milestone ? 'Edit Milestone' : 'Add New Milestone'}</DialogTitle>
         </DialogHeader>
@@ -106,6 +121,21 @@ const MilestoneModal = ({
             <FormField control={form.control} name="dueDate" render={({ field }) => (
               <FormItem><FormLabel>Due Date</FormLabel><FormControl><DatePicker date={field.value ?? undefined} setDate={field.onChange} /></FormControl><FormMessage /></FormItem>
             )} />
+            <div>
+              <Label>Attached Files</Label>
+              <div className="flex gap-2 mt-2">
+                <Input value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} placeholder="Paste file URL here" />
+                <Button type="button" onClick={handleAddFile}>Add File</Button>
+              </div>
+              <div className="space-y-2 mt-2">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-center justify-between text-sm bg-muted p-2 rounded-md">
+                    <a href={field.value} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{field.value}</a>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><X className="h-4 w-4" /></Button>
+                  </div>
+                ))}
+              </div>
+            </div>
             <DialogFooter>
               <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
               <Button type="submit" disabled={form.formState.isSubmitting}>
@@ -184,9 +214,13 @@ const ProjectCard = ({ project, onDataChange }: { project: ProjectWithMilestones
               {project.milestones.length > 0 ? (
                 project.milestones.map(milestone => (
                   <div key={milestone.id} className="flex items-center justify-between p-2 rounded-md border group">
-                    <div>
+                    <div className="flex items-center gap-2">
                       <p className="font-medium">{milestone.title}</p>
-                      <p className="text-sm text-muted-foreground">{milestone.status.replace('_', ' ')}</p>
+                      {milestone.files.length > 0 && (
+                        <span className="flex items-center text-xs text-muted-foreground">
+                          <Paperclip className="h-3 w-3 mr-1" /> {milestone.files.length}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <MilestoneModal projectId={project.id} milestone={milestone} onDataChange={onDataChange}>
