@@ -10,6 +10,7 @@ import {
   User,
   LogOut,
   Receipt,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChatInterface } from "@/components/ChatInterface";
@@ -45,6 +46,7 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
     { href: `/portal/${clientId || ''}`, icon: LayoutDashboard, label: "Dashboard" },
     { href: `/portal/${clientId || ''}/projects`, icon: FileText, label: "Projects" },
     { href: `/portal/${clientId || ''}/invoices`, icon: Receipt, label: "Invoices" },
+    { href: `/portal/${clientId || ''}/services`, icon: Briefcase, label: "Services" },
     { href: `/portal/${clientId || ''}/files`, icon: FolderArchive, label: "Files" },
     { href: `/portal/${clientId || ''}/account`, icon: User, label: "Account" },
   ];
@@ -97,7 +99,7 @@ export function ClientPortalLayout({ children }: { children: React.ReactNode }) 
               {isLoadingProfile ? (
                 <Skeleton className="h-6 w-48" />
               ) : (
-                <h1 className="text-lg font-semibold">Welcome back, {profile?.name?.split(' ')[0]}! 👋</h1>
+                <h1 className="text-lg font-semibold">Welcome back, {profile?.name?.split(' ')[0]}! ���</h1>
               )}
             </div>
             <div>
