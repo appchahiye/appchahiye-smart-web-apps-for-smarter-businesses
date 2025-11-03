@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity, FormSubmissionEntity } from "./entities";
+import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity, FormSubmissionEntity, ServiceEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission, AdminDashboardStats, AnalyticsData, ActivityItem, NotificationPreferences } from "@shared/types";
+import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission, AdminDashboardStats, AnalyticsData, ActivityItem, NotificationPreferences, Service } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
 // Generates a random, memorable password.
@@ -208,28 +208,77 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await milestoneEntity.patch({ ...updates, updatedAt: Date.now() });
     return ok(c, await milestoneEntity.getState());
   });
+  // --- Admin: Service Management ---
+  app.get('/api/admin/services', async (c) => {
+    const { items: services } = await ServiceEntity.list(c.env);
+    return ok(c, services);
+  });
+  app.post('/api/admin/services', async (c) => {
+    const { name, description, type, price } = await c.req.json<Omit<Service, 'id'>>();
+    if (!name || !type || price == null) return bad(c, 'Missing required fields');
+    const newService: Service = {
+      id: crypto.randomUUID(),
+      name,
+      description,
+      type,
+      price,
+    };
+    await ServiceEntity.create(c.env, newService);
+    return ok(c, newService);
+  });
+  app.put('/api/admin/services/:serviceId', async (c) => {
+    const { serviceId } = c.req.param();
+    const updates = await c.req.json<Partial<Service>>();
+    const serviceEntity = new ServiceEntity(c.env, serviceId);
+    if (!(await serviceEntity.exists())) return notFound(c);
+    await serviceEntity.patch(updates);
+    return ok(c, await serviceEntity.getState());
+  });
+  app.delete('/api/admin/services/:serviceId', async (c) => {
+    const { serviceId } = c.req.param();
+    const deleted = await ServiceEntity.delete(c.env, serviceId);
+    if (!deleted) return notFound(c, 'Service not found');
+    return ok(c, { message: 'Service deleted' });
+  });
   // --- Admin: Invoice Management ---
   app.get('/api/admin/invoices', async (c) => {
     const { items: invoices } = await InvoiceEntity.list(c.env);
     const { items: clients } = await ClientEntity.list(c.env);
     const { items: users } = await UserEntity.list(c.env);
+    const { items: services } = await ServiceEntity.list(c.env);
     const clientsById = new Map(clients.map(cl => [cl.id, cl]));
     const usersById = new Map(users.map(u => [u.id, u]));
+    const servicesById = new Map(services.map(s => [s.id, s]));
     const invoicesWithClientInfo: InvoiceWithClientInfo[] = invoices.map(inv => {
       const client = clientsById.get(inv.clientId);
       const user = client ? usersById.get(client.userId) : undefined;
+      const invoiceServices = inv.serviceIds
+        ? inv.serviceIds.map(id => servicesById.get(id)).filter((s): s is Service => s !== undefined)
+        : [];
       return {
         ...inv,
         clientName: user?.name || 'N/A',
         clientCompany: client?.company || 'N/A',
+        services: invoiceServices,
       };
     });
     return ok(c, invoicesWithClientInfo);
   });
   app.post('/api/admin/clients/:clientId/invoices', async (c) => {
     const { clientId } = c.req.param();
-    const { amount } = await c.req.json<{ amount: number }>();
-    if (!amount || amount <= 0) return bad(c, 'A valid amount is required');
+    const { serviceIds } = await c.req.json<{ serviceIds: string[] }>();
+    if (!serviceIds || serviceIds.length === 0) {
+      return bad(c, 'At least one service must be selected.');
+    }
+    const { items: allServices } = await ServiceEntity.list(c.env);
+    const servicesById = new Map(allServices.map(s => [s.id, s]));
+    let amount = 0;
+    for (const id of serviceIds) {
+      const service = servicesById.get(id);
+      if (!service) return bad(c, `Service with ID ${id} not found.`);
+      amount += service.price;
+    }
+    if (amount < 0) return bad(c, 'Total amount cannot be negative.');
     const newInvoice: Invoice = {
       id: crypto.randomUUID(),
       clientId,
@@ -237,6 +286,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       status: 'pending',
       pdf_url: `/mock-invoice-${crypto.randomUUID()}.pdf`,
       issuedAt: Date.now(),
+      serviceIds,
     };
     await InvoiceEntity.create(c.env, newInvoice);
     return ok(c, newInvoice);

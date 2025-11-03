@@ -28,6 +28,7 @@ import SettingsPage from './pages/admin/SettingsPage';
 import ClientFilesPage from './pages/portal/ClientFilesPage';
 import ClientAccountPage from './pages/portal/ClientAccountPage';
 import FilledFormsPage from './pages/admin/FilledFormsPage';
+import ServicesPage from './pages/admin/ServicesPage';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -62,6 +63,11 @@ const router = createBrowserRouter([
   {
     path: "/yenahimilna/invoices",
     element: <ProtectedRoute><AdminInvoicesPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/yenahimilna/services",
+    element: <ProtectedRoute><ServicesPage /></ProtectedRoute>,
     errorElement: <RouteErrorBoundary />,
   },
   {
