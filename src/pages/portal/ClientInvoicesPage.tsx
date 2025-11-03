@@ -45,6 +45,7 @@ export default function ClientInvoicesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Invoice ID</TableHead>
+                <TableHead>Services</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date Issued</TableHead>
@@ -55,6 +56,7 @@ export default function ClientInvoicesPage() {
               {isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
@@ -66,6 +68,11 @@ export default function ClientInvoicesPage() {
                 invoices.map(invoice => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-mono text-sm">{invoice.id.substring(0, 8)}</TableCell>
+                    <TableCell>
+                      <div className="text-sm max-w-xs truncate">
+                        {invoice.services?.map(s => s.name).join(', ') || 'N/A'}
+                      </div>
+                    </TableCell>
                     <TableCell>PKR {invoice.amount.toFixed(2)}</TableCell>
                     <TableCell><Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>{invoice.status}</Badge></TableCell>
                     <TableCell>{format(new Date(invoice.issuedAt), 'PPP')}</TableCell>
@@ -82,7 +89,7 @@ export default function ClientInvoicesPage() {
                   </TableRow>
                 ))
               ) : (
-                <TableRow><TableCell colSpan={5} className="text-center">You have no invoices yet.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center">You have no invoices yet.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
