@@ -45,16 +45,6 @@ const ServiceModal = ({
       price: 0,
     },
   });
-  useEffect(() => {
-    if (isOpen) {
-      form.reset(service || {
-        name: '',
-        description: '',
-        type: 'one-time',
-        price: 0,
-      });
-    }
-  }, [isOpen, service, form]);
   const onSubmit = async (values: ServiceFormValues) => {
     try {
       if (service) {
@@ -66,6 +56,7 @@ const ServiceModal = ({
       }
       onSave();
       setIsOpen(false);
+      form.reset();
     } catch (error) {
       toast.error('Failed to save service.');
     }

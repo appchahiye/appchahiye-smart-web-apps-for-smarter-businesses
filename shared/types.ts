@@ -69,6 +69,14 @@ export interface Milestone {
 export interface ProjectWithMilestones extends Project {
   milestones: Milestone[];
 }
+// --- Service Management Types ---
+export interface Service {
+  id: string;
+  name: string;
+  description: string;
+  type: 'one-time' | 'recurring';
+  price: number;
+}
 // --- Invoicing Types ---
 export interface Invoice {
   id: string;
@@ -77,10 +85,12 @@ export interface Invoice {
   status: 'pending' | 'paid';
   pdf_url: string; // For mock download
   issuedAt: number; // epoch millis
+  serviceIds?: string[];
 }
 export interface InvoiceWithClientInfo extends Invoice {
   clientName: string;
   clientCompany: string;
+  services?: Service[];
 }
 // --- Chat Types ---
 export interface Message {

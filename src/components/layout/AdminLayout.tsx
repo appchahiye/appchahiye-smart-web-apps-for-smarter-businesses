@@ -13,6 +13,7 @@ import {
   LogOut,
   Receipt,
   ClipboardList,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/yenahimilna/content", icon: FileText, label: "Content" },
   { href: "/yenahimilna/leads", icon: Users, label: "Leads / Clients" },
   { href: "/yenahimilna/invoices", icon: Receipt, label: "Invoices" },
+  { href: "/yenahimilna/services", icon: Briefcase, label: "Services" },
   { href: "/yenahimilna/chat", icon: MessageSquare, label: "Chat" },
   { href: "/yenahimilna/forms", icon: ClipboardList, label: "Filled Forms" },
   { href: "/yenahimilna/analytics", icon: LineChart, label: "Analytics" },
