@@ -367,7 +367,15 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const { clientId } = c.req.param();
     const { items: allInvoices } = await InvoiceEntity.list(c.env);
     const clientInvoices = allInvoices.filter(inv => inv.clientId === clientId);
-    return ok(c, clientInvoices);
+    const { items: allServices } = await ServiceEntity.list(c.env);
+    const servicesById = new Map(allServices.map(s => [s.id, s]));
+    const invoicesWithServices = clientInvoices.map(inv => {
+      const invoiceServices = inv.serviceIds
+        ? inv.serviceIds.map(id => servicesById.get(id)).filter((s): s is Service => s !== undefined)
+        : [];
+      return { ...inv, services: invoiceServices };
+    });
+    return ok(c, invoicesWithServices);
   });
   // --- Client Account Management ---
   app.get('/api/portal/:clientId/account', async (c) => {

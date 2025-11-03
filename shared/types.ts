@@ -86,11 +86,11 @@ export interface Invoice {
   pdf_url: string; // For mock download
   issuedAt: number; // epoch millis
   serviceIds?: string[];
+  services?: Service[];
 }
 export interface InvoiceWithClientInfo extends Invoice {
   clientName: string;
   clientCompany: string;
-  services?: Service[];
 }
 // --- Chat Types ---
 export interface Message {
