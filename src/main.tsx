@@ -29,6 +29,7 @@ import ClientFilesPage from './pages/portal/ClientFilesPage';
 import ClientAccountPage from './pages/portal/ClientAccountPage';
 import FilledFormsPage from './pages/admin/FilledFormsPage';
 import ServicesPage from './pages/admin/ServicesPage';
+import ClientServicesPage from './pages/portal/ClientServicesPage';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -108,6 +109,11 @@ const router = createBrowserRouter([
   {
     path: "/portal/:clientId/invoices",
     element: <ClientInvoicesPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/portal/:clientId/services",
+    element: <ClientServicesPage />,
     errorElement: <RouteErrorBoundary />,
   },
   {

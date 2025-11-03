@@ -377,6 +377,10 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     });
     return ok(c, invoicesWithServices);
   });
+  app.get('/api/portal/:clientId/services', async (c) => {
+    const { items: services } = await ServiceEntity.list(c.env);
+    return ok(c, services);
+  });
   // --- Client Account Management ---
   app.get('/api/portal/:clientId/account', async (c) => {
     const { clientId } = c.req.param();
