@@ -73,7 +73,10 @@ const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
             </nav>
           </div>
           <div className="flex items-center">
-            <div className="hidden md:block">
+            <div className="hidden md:flex items-center gap-2">
+              <Button variant="ghost" asChild>
+                <a href="/portal/login">Sign In</a>
+              </Button>
               <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity">
                 Get Your App <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -84,6 +87,9 @@ const Header = ({ onGetStartedClick }: { onGetStartedClick: () => void }) => {
                 <SheetContent>
                   <div className="flex flex-col space-y-6 pt-10">
                     {navLinks.map((link) => <a key={link.name} href={link.href} className="text-lg font-medium">{link.name}</a>)}
+                    <Button variant="outline" asChild>
+                      <a href="/portal/login">Sign In</a>
+                    </Button>
                     <Button onClick={onGetStartedClick} className="bg-gradient-brand text-white">Get Your App</Button>
                   </div>
                 </SheetContent>
