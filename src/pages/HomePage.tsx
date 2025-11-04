@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Menu, ArrowRight, Workflow, Cloud, Scaling, Cpu, Instagram, Facebook, Loader2, Quote, ChevronLeft, ChevronRight
 } from 'lucide-react';
@@ -110,6 +111,16 @@ const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent[
       <div className="glow-orb w-96 h-96 bg-electric-blue/50 -bottom-40 -right-40 animate-blob-spin [animation-delay:5s]"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-6 flex justify-center"
+          >
+            <Badge variant="outline" className="py-2 px-4 rounded-full border-deep-violet/20 bg-deep-violet/10 text-deep-violet font-medium">
+              Smart Web Apps
+            </Badge>
+          </motion.div>
           {content ? (
             <>
               <h1 className="text-5xl md:text-7xl font-bold font-display tracking-tight text-foreground" dangerouslySetInnerHTML={{ __html: content.headline.replace('Simplified.', '<span class="text-gradient-animated">Simplified.</span>') }}></h1>
@@ -121,9 +132,9 @@ const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent[
               <Skeleton className="h-6 w-1/2 mx-auto mt-6" />
             </>
           )}
-          <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+          <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
             <Button onClick={onGetStartedClick} size="lg" className="bg-gradient-brand text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-all shadow-lg hover:shadow-soft-glow">Get Started</Button>
-            <Button onClick={handleSeeExamples} size="lg" variant="ghost" className="px-8 py-3">See Examples</Button>
+            <Button onClick={handleSeeExamples} size="lg" variant="ghost" className="px-8 py-3 text-muted-foreground">See Examples</Button>
           </div>
         </motion.div>
         <motion.div
