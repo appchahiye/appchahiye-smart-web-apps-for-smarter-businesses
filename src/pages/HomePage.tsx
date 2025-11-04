@@ -117,7 +117,7 @@ const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent[
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-6 flex justify-center"
           >
-            <Badge className="py-2.5 px-5 rounded-full border border-foreground/20 bg-background text-foreground font-medium shadow-sm">
+            <Badge className="py-3 px-6 rounded-full border-2 border-foreground/80 bg-background text-foreground font-medium shadow-md">
               Smart Web Apps
             </Badge>
           </motion.div>
