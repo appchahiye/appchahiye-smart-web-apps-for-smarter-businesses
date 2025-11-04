@@ -6,7 +6,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Inter',
+  				'Satoshi Variable',
   				'-apple-system',
   				'BlinkMacSystemFont',
   				'Segoe UI',
@@ -14,8 +14,7 @@ export default {
   				'sans-serif'
   			],
   			display: [
-  				'Poppins', // Updated font as per brand guidelines
-  				'Inter',
+  				'Satoshi Variable',
   				'system-ui',
   				'sans-serif'
   			],
