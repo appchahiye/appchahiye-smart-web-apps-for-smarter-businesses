@@ -117,7 +117,7 @@ const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent[
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-6 flex justify-center"
           >
-            <Badge className="py-2 px-4 rounded-full border border-black/5 dark:border-white/5 bg-white dark:bg-muted text-muted-foreground font-medium shadow-sm">
+            <Badge className="py-2 px-4 rounded-full border border-black/5 dark:border-white/5 bg-white dark:bg-muted text-muted-foreground font-medium shadow-sm hover:border-black/20 dark:hover:border-white/20 hover:text-foreground transition-colors">
               <Wand2 className="mr-2 h-4 w-4" />
               EXPERIENCE
             </Badge>
