@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
-  Menu, ArrowRight, Workflow, Cloud, Scaling, Cpu, Instagram, Facebook, Loader2, Quote, ChevronLeft, ChevronRight
+  Menu, ArrowRight, Workflow, Cloud, Scaling, Cpu, Instagram, Facebook, Loader2, Quote, ChevronLeft, ChevronRight, Wand2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { WebsiteContent } from '@shared/types';
@@ -117,8 +117,9 @@ const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent[
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-6 flex justify-center"
           >
-            <Badge className="py-3 px-6 rounded-full border-2 border-foreground/80 bg-background text-foreground font-medium shadow-md">
-              Experience Yourself
+            <Badge className="py-2 px-4 rounded-full border bg-muted text-muted-foreground font-medium shadow-sm">
+              <Wand2 className="mr-2 h-4 w-4" />
+              EXPERIENCE
             </Badge>
           </motion.div>
           {content ? (
