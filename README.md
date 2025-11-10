@@ -1,6 +1,6 @@
 # AppChahiye: Smart Web Apps for Smarter Businesses
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/appchahiye/appchahiye-smart-web-apps-for-smarter-businesses)
 
 AppChahiye is a comprehensive web ecosystem designed to streamline the process of building and managing custom web applications for businesses. The platform consists of three core components: a stunning, conversion-focused public website to attract clients; a powerful, internal admin dashboard for managing projects and content; and a secure, personalized client portal for each customer to track progress, collaborate, and handle invoices.
 
@@ -82,4 +82,4 @@ This project is designed for seamless deployment to the Cloudflare ecosystem.
 
 Alternatively, you can deploy directly from your GitHub repository using the button below.
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/appchahiye/appchahiye-smart-web-apps-for-smarter-businesses)
