@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import useEmblaCarousel from 'embla-carousel-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -117,10 +118,12 @@ const HeroSection = ({ content, onGetStartedClick }: { content?: WebsiteContent[
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-6 flex justify-center"
           >
-            <Badge className="py-2 px-4 rounded-full border border-black/5 dark:border-white/5 bg-white dark:bg-muted text-muted-foreground font-medium shadow-sm hover:border-black/20 dark:hover:border-white/20 hover:text-foreground transition-colors hover:bg-white dark:hover:bg-muted">
-              <Wand2 className="mr-2 h-4 w-4" />
-              EXPERIENCE
-            </Badge>
+            <Link to="/experience-demo">
+              <Badge className="py-2 px-4 rounded-full border border-black/5 dark:border-white/5 bg-white dark:bg-muted text-muted-foreground font-medium shadow-sm transition-colors">
+                <Wand2 className="mr-2 h-4 w-4" />
+                EXPERIENCE
+              </Badge>
+            </Link>
           </motion.div>
           {content ? (
             <>

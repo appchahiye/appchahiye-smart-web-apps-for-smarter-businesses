@@ -30,10 +30,16 @@ import ClientAccountPage from './pages/portal/ClientAccountPage';
 import FilledFormsPage from './pages/admin/FilledFormsPage';
 import ServicesPage from './pages/admin/ServicesPage';
 import ClientServicesPage from './pages/portal/ClientServicesPage';
+import DemoAppPage from './pages/demo-app/DemoAppPage';
 const router = createBrowserRouter([
   {
     path: "/",
     element: <HomePage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/experience-demo/*",
+    element: <DemoAppPage />,
     errorElement: <RouteErrorBoundary />,
   },
   {

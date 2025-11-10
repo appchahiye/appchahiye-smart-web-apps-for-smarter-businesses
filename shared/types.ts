@@ -212,3 +212,31 @@ export interface ActivityItem {
   text: string;
   timestamp: number; // epoch millis
 }
+// --- Interactive Demo Types ---
+export type BusinessType = 'Retail' | 'Service' | 'Clinic';
+export interface DemoCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  since: string; // "YYYY-MM-DD"
+  avatarUrl: string;
+}
+export interface DemoProduct {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+}
+export interface DemoOrder {
+  id: string;
+  customerId: string;
+  date: string; // "YYYY-MM-DD"
+  amount: number;
+  status: 'Completed' | 'Pending' | 'Cancelled';
+}
+export interface DemoData {
+  customers: DemoCustomer[];
+  products: DemoProduct[];
+  orders: DemoOrder[];
+}
