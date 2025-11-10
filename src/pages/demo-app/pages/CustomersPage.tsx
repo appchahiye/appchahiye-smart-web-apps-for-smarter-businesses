@@ -2,15 +2,19 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { PlusCircle, ArrowUpDown } from 'lucide-react';
 import { useDemoAppStore } from '@/stores/demoAppStore';
 import type { DemoCustomer } from '@shared/types';
+import { toast } from 'sonner';
 const PAGE_SIZE = 5;
 export default function CustomersPage() {
   const businessType = useDemoAppStore(state => state.businessType);
-  const customers = useDemoAppStore(state => state.data?.customers) || [];
+  const customerList = useDemoAppStore(state => state.data?.customers);
+  const customers = useMemo(() => customerList || [], [customerList]);
   const [filter, setFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<{ key: keyof DemoCustomer; direction: 'asc' | 'desc' } | null>(null);
@@ -44,6 +48,10 @@ export default function CustomersPage() {
     }
     setSortConfig({ key, direction });
   };
+  const handleMockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.success("Customer added!", { description: "In a real app, this would be saved." });
+  };
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -53,10 +61,27 @@ export default function CustomersPage() {
             Manage your {businessType === 'Clinic' ? 'patients' : 'customers'}.
           </p>
         </div>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add New
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Customer</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleMockSubmit} className="space-y-4">
+              <div><Label htmlFor="name">Name</Label><Input id="name" placeholder="John Doe" /></div>
+              <div><Label htmlFor="email">Email</Label><Input id="email" type="email" placeholder="john@example.com" /></div>
+              <div><Label htmlFor="phone">Phone</Label><Input id="phone" placeholder="555-0100" /></div>
+              <DialogFooter>
+                <DialogClose asChild><Button type="submit">Add Customer</Button></DialogClose>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
       <Card>
         <CardHeader>

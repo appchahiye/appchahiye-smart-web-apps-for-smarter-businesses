@@ -2,14 +2,18 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { PlusCircle, ArrowUpDown } from 'lucide-react';
 import { useDemoAppStore } from '@/stores/demoAppStore';
 import type { DemoProduct } from '@shared/types';
+import { toast } from 'sonner';
 const PAGE_SIZE = 5;
 export default function ProductsPage() {
   const businessType = useDemoAppStore(state => state.businessType);
-  const products = useDemoAppStore(state => state.data?.products) || [];
+  const productList = useDemoAppStore(state => state.data?.products);
+  const products = useMemo(() => productList || [], [productList]);
   const [filter, setFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<{ key: keyof DemoProduct; direction: 'asc' | 'desc' } | null>(null);
@@ -51,6 +55,10 @@ export default function ProductsPage() {
     }
     setSortConfig({ key, direction });
   };
+  const handleMockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.success(`${getTitle()} added!`, { description: "In a real app, this would be saved." });
+  };
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -60,10 +68,27 @@ export default function ProductsPage() {
             Manage your {getTitle().toLowerCase()}.
           </p>
         </div>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add New
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New {getTitle()}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleMockSubmit} className="space-y-4">
+              <div><Label htmlFor="name">Name</Label><Input id="name" placeholder="Item Name" /></div>
+              <div><Label htmlFor="price">Price (PKR)</Label><Input id="price" type="number" placeholder="99.99" /></div>
+              <div><Label htmlFor="stock">Stock / Availability</Label><Input id="stock" type="number" placeholder="100" /></div>
+              <DialogFooter>
+                <DialogClose asChild><Button type="submit">Add {getTitle()}</Button></DialogClose>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
       <Card>
         <CardHeader>

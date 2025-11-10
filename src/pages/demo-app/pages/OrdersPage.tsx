@@ -1,18 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, ArrowUpDown } from 'lucide-react';
 import { useDemoAppStore } from '@/stores/demoAppStore';
 import type { DemoOrder } from '@shared/types';
+import { toast } from 'sonner';
 const PAGE_SIZE = 5;
 export default function OrdersPage() {
   const businessType = useDemoAppStore(state => state.businessType);
   const data = useDemoAppStore(state => state.data);
-  const orders = data?.orders || [];
+  const orderList = useDemoAppStore(state => state.data?.orders);
+  const orders = useMemo(() => orderList || [], [orderList]);
   const customersById = useMemo(() => new Map(data?.customers.map(c => [c.id, c])), [data]);
+  const customers = useMemo(() => data?.customers || [], [data]);
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<{ key: keyof DemoOrder; direction: 'asc' | 'desc' } | null>(null);
@@ -54,6 +60,10 @@ export default function OrdersPage() {
     }
     setSortConfig({ key, direction });
   };
+  const handleMockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.success(`${getTitle()} created!`, { description: "In a real app, this would be saved." });
+  };
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -63,10 +73,45 @@ export default function OrdersPage() {
             Track all your {getTitle().toLowerCase()}.
           </p>
         </div>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Create New
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Create New
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New {getTitle()}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleMockSubmit} className="space-y-4">
+              <div>
+                <Label>Customer</Label>
+                <Select>
+                  <SelectTrigger><SelectValue placeholder="Select a customer" /></SelectTrigger>
+                  <SelectContent>
+                    {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label htmlFor="amount">Amount (PKR)</Label><Input id="amount" type="number" placeholder="199.99" /></div>
+              <div>
+                <Label>Status</Label>
+                <Select defaultValue="Pending">
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild><Button type="submit">Create {getTitle()}</Button></DialogClose>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
       <Card>
         <CardHeader>
