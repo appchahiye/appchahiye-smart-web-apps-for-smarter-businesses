@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PlusCircle, ArrowUpDown } from 'lucide-react';
 import { useDemoAppStore } from '@/stores/demoAppStore';
+import type { DemoProduct } from '@shared/types';
+const PAGE_SIZE = 5;
 export default function ProductsPage() {
   const businessType = useDemoAppStore(state => state.businessType);
-  const products = useDemoAppStore(state => state.data?.products);
+  const products = useDemoAppStore(state => state.data?.products) || [];
+  const [filter, setFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof DemoProduct; direction: 'asc' | 'desc' } | null>(null);
   const getTitle = () => {
     switch (businessType) {
       case 'Retail': return 'Products';
@@ -13,6 +20,36 @@ export default function ProductsPage() {
       case 'Clinic': return 'Treatments';
       default: return 'Items';
     }
+  };
+  const sortedAndFilteredProducts = useMemo(() => {
+    let filtered = products.filter(product =>
+      product.name.toLowerCase().includes(filter.toLowerCase())
+    );
+    if (sortConfig !== null) {
+      filtered.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return filtered;
+  }, [products, filter, sortConfig]);
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    return sortedAndFilteredProducts.slice(start, end);
+  }, [sortedAndFilteredProducts, currentPage]);
+  const totalPages = Math.ceil(sortedAndFilteredProducts.length / PAGE_SIZE);
+  const requestSort = (key: keyof DemoProduct) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
   };
   return (
     <div className="space-y-6">
@@ -32,24 +69,75 @@ export default function ProductsPage() {
         <CardHeader>
           <CardTitle>{getTitle()} List</CardTitle>
           <CardDescription>
-            This section will allow you to manage inventory, pricing, and details.
+            A list of all {getTitle().toLowerCase()} in your system.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {products && products.length > 0 ? (
-            <ul className="space-y-2">
-              {products.map(product => (
-                <li key={product.id} className="p-2 border rounded-md">
-                  {product.name} - PKR {product.price.toFixed(2)}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No product/service data available for this business type.</p>
-          )}
-          <p className="mt-4 text-sm text-muted-foreground">
-            The full application will feature robust inventory tracking, service availability management, and detailed product pages.
-          </p>
+          <div className="mb-4">
+            <Input
+              placeholder={`Filter by ${getTitle().toLowerCase()} name...`}
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <Button variant="ghost" onClick={() => requestSort('name')}>
+                      Name <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button variant="ghost" onClick={() => requestSort('price')}>
+                      Price <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>Stock / Availability</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedProducts.length > 0 ? (
+                  paginatedProducts.map(product => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>PKR {product.price.toFixed(2)}</TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} className="h-24 text-center">
+                      No {getTitle().toLowerCase()} found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <span className="text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
