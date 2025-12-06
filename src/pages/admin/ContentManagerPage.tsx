@@ -13,6 +13,7 @@ import { Toaster, toast } from '@/components/ui/sonner';
 import { api } from '@/lib/api-client';
 import type { WebsiteContent } from '@shared/types';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { FileUpload } from '@/components/ui/file-upload';
 const heroSchema = z.object({
   headline: z.string().min(1, 'Headline is required'),
   subheadline: z.string().min(1, 'Subheadline is required'),
@@ -147,8 +148,18 @@ export default function ContentManagerPage() {
                   {errors.hero?.subheadline && <p className="text-red-500 text-sm mt-1">{errors.hero.subheadline.message}</p>}
                 </div>
                 <div>
-                  <Label>Image URL</Label>
-                  <Input {...register('hero.imageUrl')} placeholder="https://example.com/image.png" />
+                  <Label>Hero Image</Label>
+                  <Controller
+                    name="hero.imageUrl"
+                    control={control}
+                    render={({ field }) => (
+                      <FileUpload
+                        value={field.value}
+                        onChange={field.onChange}
+                        folder="content"
+                      />
+                    )}
+                  />
                   {errors.hero?.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.hero.imageUrl.message}</p>}
                 </div>
               </CardContent>
@@ -166,8 +177,19 @@ export default function ContentManagerPage() {
                         <Input {...register(`portfolio.${index}.name`)} />
                       </div>
                       <div>
-                        <Label>Image URL</Label>
-                        <Input {...register(`portfolio.${index}.image`)} placeholder="https://example.com/image.png" />
+                        <Label>Project Image</Label>
+                        <Controller
+                          name={`portfolio.${index}.image`}
+                          control={control}
+                          render={({ field }) => (
+                            <FileUpload
+                              value={field.value}
+                              onChange={field.onChange}
+                              folder="content"
+                              variant="small"
+                            />
+                          )}
+                        />
                       </div>
                     </div>
                     <Button type="button" variant="destructive" size="icon" onClick={() => removePortfolio(index)}><Trash2 className="h-4 w-4" /></Button>
@@ -179,13 +201,13 @@ export default function ContentManagerPage() {
               </CardContent>
             </Card>
           </TabsContent>
-           <TabsContent value="testimonials">
+          <TabsContent value="testimonials">
             <Card>
               <CardHeader><CardTitle>Testimonials Section</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 {testimonialFields.map((field, index) => (
                   <div key={field.id} className="border p-4 rounded-md space-y-2">
-                     <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center">
                       <h3 className="font-semibold">Testimonial {index + 1}</h3>
                       <Button type="button" variant="destructive" size="icon" onClick={() => removeTestimonial(index)}><Trash2 className="h-4 w-4" /></Button>
                     </div>
@@ -193,8 +215,19 @@ export default function ContentManagerPage() {
                     <div><Label>Company</Label><Input {...register(`testimonials.${index}.company`)} /></div>
                     <div><Label>Text</Label><Textarea {...register(`testimonials.${index}.text`)} /></div>
                     <div>
-                      <Label>Avatar URL</Label>
-                      <Input {...register(`testimonials.${index}.avatar`)} placeholder="https://example.com/avatar.png" />
+                      <Label>Avatar Image</Label>
+                      <Controller
+                        name={`testimonials.${index}.avatar`}
+                        control={control}
+                        render={({ field }) => (
+                          <FileUpload
+                            value={field.value}
+                            onChange={field.onChange}
+                            folder="avatars"
+                            variant="avatar"
+                          />
+                        )}
+                      />
                     </div>
                   </div>
                 ))}
@@ -301,8 +334,19 @@ export default function ContentManagerPage() {
               <CardHeader><CardTitle>Brand Assets</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Logo URL</Label>
-                  <Input {...register('brandAssets.logoUrl')} />
+                  <Label>Logo</Label>
+                  <Controller
+                    name="brandAssets.logoUrl"
+                    control={control}
+                    render={({ field }) => (
+                      <FileUpload
+                        value={field.value}
+                        onChange={field.onChange}
+                        folder="content"
+                        variant="small"
+                      />
+                    )}
+                  />
                 </div>
                 <div>
                   <Label>Primary Color</Label>
