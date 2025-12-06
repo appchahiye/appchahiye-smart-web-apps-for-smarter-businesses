@@ -45,7 +45,7 @@ const NavContent = () => {
           <AppLogo />
         </NavLink>
       </div>
-      <nav className="flex-1 grid items-start gap-1 p-4 text-sm font-medium">
+      <nav className="flex-1 flex flex-col gap-1 p-4 text-sm font-medium">
         {navItems.map(({ href, icon: Icon, label }) => (
           <NavLink
             key={href}
