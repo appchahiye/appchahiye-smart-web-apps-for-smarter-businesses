@@ -9,6 +9,8 @@ export interface Env {
   GlobalDurableObject: DurableObjectNamespace<GlobalDurableObject>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   DB: any; // D1Database - type available at runtime
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  FILES: any; // R2Bucket - type available at runtime
 }
 type Doc<T> = { v: number; data: T };
 /**

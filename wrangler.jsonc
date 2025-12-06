@@ -32,6 +32,12 @@
       "database_id": "169104d4-a8e8-4ebc-b8f7-a0e1972187b2"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "appchahiye"
+    }
+  ],
   "migrations": [
     {
       "tag": "v1",

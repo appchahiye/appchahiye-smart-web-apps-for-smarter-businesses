@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { Env } from './core-utils';
 import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity, FormSubmissionEntity, ServiceEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
+import { uploadFile, getFile, deleteFile, generateFileKey, getContentType, listFiles } from './r2-utils';
 import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission, AdminDashboardStats, AnalyticsData, ActivityItem, NotificationPreferences, Service } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
@@ -309,9 +310,9 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const usersById = new Map(allUsers.map(u => [u.id, u]));
     const adminId = 'admin-user-01';
     if (!usersById.has(adminId)) {
-        const admin: User = { id: adminId, email: 'appchahiye@gmail.com', name: 'Admin User', role: 'admin', passwordHash: '' };
-        await UserEntity.create(c.env, admin);
-        usersById.set(admin.id, admin);
+      const admin: User = { id: adminId, email: 'appchahiye@gmail.com', name: 'Admin User', role: 'admin', passwordHash: '' };
+      await UserEntity.create(c.env, admin);
+      usersById.set(admin.id, admin);
     }
     const messagesWithSender: MessageWithSender[] = conversationMessages.map(msg => {
       const sender = usersById.get(msg.senderId);
@@ -622,5 +623,102 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     await UserEntity.delete(c.env, clientId); // Assuming userId is same as clientId
     if (!clientDeleted) return notFound(c, 'Client not found');
     return ok(c, { message: 'Client and all associated data deleted' });
+  });
+
+  // ===========================================
+  // R2 File Storage Endpoints
+  // ===========================================
+
+  // Upload a file
+  app.post('/api/upload', async (c) => {
+    try {
+      const formData = await c.req.formData();
+      const file = formData.get('file') as File | null;
+      const folder = (formData.get('folder') as string) || 'content';
+      const entityId = (formData.get('entityId') as string) || crypto.randomUUID();
+
+      if (!file) {
+        return bad(c, 'No file provided');
+      }
+
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        return bad(c, 'File size exceeds 10MB limit');
+      }
+
+      const validFolders = ['avatars', 'milestones', 'invoices', 'content', 'attachments'] as const;
+      const safeFolder = validFolders.includes(folder as typeof validFolders[number])
+        ? (folder as typeof validFolders[number])
+        : 'content';
+
+      const key = generateFileKey(safeFolder, entityId, file.name);
+      const contentType = file.type || getContentType(file.name);
+      const arrayBuffer = await file.arrayBuffer();
+
+      const result = await uploadFile(c.env, key, arrayBuffer, contentType, {
+        originalName: file.name,
+        size: file.size,
+      });
+
+      return ok(c, result);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      return bad(c, 'File upload failed');
+    }
+  });
+
+  // Get/download a file
+  app.get('/api/files/*', async (c) => {
+    const key = c.req.path.replace('/api/files/', '');
+
+    if (!key) {
+      return bad(c, 'File key is required');
+    }
+
+    const result = await getFile(c.env, key);
+
+    if (!result) {
+      return notFound(c, 'File not found');
+    }
+
+    const headers = new Headers();
+    headers.set('Content-Type', result.metadata.contentType);
+    headers.set('Content-Length', result.metadata.size.toString());
+    headers.set('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+
+    // For non-image files, suggest download
+    if (!result.metadata.contentType.startsWith('image/')) {
+      headers.set('Content-Disposition', `attachment; filename="${result.metadata.originalName}"`);
+    }
+
+    return new Response(result.object.body, { headers });
+  });
+
+  // Delete a file
+  app.delete('/api/files/*', async (c) => {
+    const key = c.req.path.replace('/api/files/', '');
+
+    if (!key) {
+      return bad(c, 'File key is required');
+    }
+
+    const deleted = await deleteFile(c.env, key);
+
+    if (!deleted) {
+      return notFound(c, 'File not found or could not be deleted');
+    }
+
+    return ok(c, { message: 'File deleted successfully' });
+  });
+
+  // List files in a folder
+  app.get('/api/files-list/:folder', async (c) => {
+    const { folder } = c.req.param();
+    const entityId = c.req.query('entityId');
+
+    const prefix = entityId ? `${folder}/${entityId}/` : `${folder}/`;
+    const result = await listFiles(c.env, prefix);
+
+    return ok(c, result);
   });
 }
