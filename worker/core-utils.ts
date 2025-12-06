@@ -11,6 +11,9 @@ export interface Env {
   DB: any; // D1Database - type available at runtime
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   FILES: any; // R2Bucket - type available at runtime
+  // Google OAuth
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
 }
 type Doc<T> = { v: number; data: T };
 /**

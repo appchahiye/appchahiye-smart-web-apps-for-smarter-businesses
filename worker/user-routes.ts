@@ -3,6 +3,7 @@ import type { Env } from './core-utils';
 import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity, FormSubmissionEntity, ServiceEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
 import { uploadFile, getFile, deleteFile, generateFileKey, getContentType, listFiles } from './r2-utils';
+import { getGoogleAuthUrl, exchangeCodeForTokens, getGoogleUserInfo, getCallbackUrl } from './google-auth';
 import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission, AdminDashboardStats, AnalyticsData, ActivityItem, NotificationPreferences, Service } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
@@ -720,5 +721,104 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const result = await listFiles(c.env, prefix);
 
     return ok(c, result);
+  });
+
+  // ===========================================
+  // Google OAuth Endpoints
+  // ===========================================
+
+  // Redirect to Google login
+  app.get('/api/auth/google', async (c) => {
+    const callbackUrl = getCallbackUrl(c.req.raw);
+    const authUrl = getGoogleAuthUrl(c.env, callbackUrl);
+    return c.redirect(authUrl);
+  });
+
+  // Handle Google OAuth callback
+  app.get('/api/auth/google/callback', async (c) => {
+    const code = c.req.query('code');
+    const error = c.req.query('error');
+
+    if (error) {
+      return c.redirect('/?error=google_auth_denied');
+    }
+
+    if (!code) {
+      return c.redirect('/?error=no_auth_code');
+    }
+
+    try {
+      const callbackUrl = getCallbackUrl(c.req.raw);
+
+      // Exchange code for tokens
+      const tokens = await exchangeCodeForTokens(c.env, code, callbackUrl);
+
+      // Get user info from Google
+      const googleUser = await getGoogleUserInfo(tokens.access_token);
+
+      // Check if user already exists
+      const existingUsers = await UserEntity.list(c.env);
+      let existingUser = existingUsers.items.find(u => u.email === googleUser.email);
+
+      let userId: string;
+      let clientId: string;
+      let isNewUser = false;
+
+      if (existingUser) {
+        // User exists - find their client record
+        userId = existingUser.id;
+        const clients = await ClientEntity.list(c.env);
+        const client = clients.items.find(cl => cl.userId === userId);
+        if (client) {
+          clientId = client.id;
+        } else {
+          // User exists but no client - create one
+          const newClient = await ClientEntity.create(c.env, {
+            id: userId,
+            userId: userId,
+            company: googleUser.name + "'s Company",
+            portalUrl: '/portal/:clientId',
+            projectType: 'Google OAuth Signup',
+            status: 'pending',
+            createdAt: Date.now(),
+          });
+          clientId = newClient.id;
+        }
+      } else {
+        // New user - create user and client
+        isNewUser = true;
+        userId = crypto.randomUUID();
+        clientId = userId;
+
+        // Create user
+        await UserEntity.create(c.env, {
+          id: userId,
+          email: googleUser.email,
+          name: googleUser.name,
+          role: 'client',
+          passwordHash: `google_oauth_${googleUser.id}`,
+          avatarUrl: googleUser.picture,
+        });
+
+        // Create client
+        await ClientEntity.create(c.env, {
+          id: clientId,
+          userId: userId,
+          company: googleUser.name + "'s Company",
+          portalUrl: '/portal/:clientId',
+          projectType: 'Google OAuth Signup',
+          status: 'pending',
+          createdAt: Date.now(),
+        });
+      }
+
+      // Redirect to portal with success indicator
+      const portalUrl = `/portal/${clientId}?auth=google&welcome=${isNewUser ? 'true' : 'false'}`;
+      return c.redirect(portalUrl);
+
+    } catch (err) {
+      console.error('Google OAuth error:', err);
+      return c.redirect('/?error=google_auth_failed');
+    }
   });
 }
