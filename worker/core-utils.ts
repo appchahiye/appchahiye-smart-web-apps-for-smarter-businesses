@@ -7,6 +7,8 @@ import { DurableObject } from "cloudflare:workers";
 import type { Context } from "hono";
 export interface Env {
   GlobalDurableObject: DurableObjectNamespace<GlobalDurableObject>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  DB: any; // D1Database - type available at runtime
 }
 type Doc<T> = { v: number; data: T };
 /**
@@ -43,7 +45,7 @@ export class GlobalDurableObject extends DurableObject<Env, unknown> {
   async listPrefix(prefix: string, startAfter?: string | null, limit?: number) {
     const opts: Record<string, unknown> = { prefix };
     if (limit != null) opts.limit = limit;
-    if (startAfter)   opts.startAfter = startAfter;
+    if (startAfter) opts.startAfter = startAfter;
     const m = await this.ctx.storage.list(opts);            // Map<string, unknown>
     const names = Array.from((m as Map<string, unknown>).keys());
     // Heuristic: if we got "limit" items, assume there might be more; use the last key as the cursor.
@@ -72,7 +74,7 @@ export class GlobalDurableObject extends DurableObject<Env, unknown> {
   async indexDrop(_rootKey: string): Promise<void> { await this.ctx.storage.deleteAll(); }
 }
 export interface EntityStatics<S, T extends Entity<S>> {
-  new (env: Env, id: string): T; // inherited default ctor
+  new(env: Env, id: string): T; // inherited default ctor
   readonly entityName: string;
   readonly initialState: S;
 }
