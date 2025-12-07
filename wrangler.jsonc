@@ -4,7 +4,7 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "appchahiye-web-ecosy-a006zrzuqqf7crfw6sjry",
+  "name": "appchahiye-web-link",
   "main": "worker/index.ts",
   "compatibility_date": "2025-04-24",
   "assets": {
