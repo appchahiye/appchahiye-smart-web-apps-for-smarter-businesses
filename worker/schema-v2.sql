@@ -20,8 +20,9 @@ CREATE TABLE IF NOT EXISTS tenants (
     branding TEXT DEFAULT '{}',
     settings TEXT DEFAULT '{}',
     created_at INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL,
-    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+    updated_at INTEGER NOT NULL
+    -- Note: owner_id is not FK constrained to users table
+    -- because tenant owners may be registered via different auth flows
 );
 
 CREATE INDEX IF NOT EXISTS idx_tenants_owner ON tenants(owner_id);
