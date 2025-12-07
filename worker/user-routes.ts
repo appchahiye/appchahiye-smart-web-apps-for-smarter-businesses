@@ -1,12 +1,17 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
 import { WebsiteContentEntity, UserEntity, ClientEntity, ProjectEntity, MilestoneEntity, InvoiceEntity, MessageEntity, FormSubmissionEntity, ServiceEntity } from "./entities";
+import { TenantEntity } from "./saas-entities";
 import { ok, bad, notFound } from './core-utils';
 import { uploadFile, getFile, deleteFile, generateFileKey, getContentType, listFiles } from './r2-utils';
 import { getGoogleAuthUrl, exchangeCodeForTokens, getGoogleUserInfo, getCallbackUrl } from './google-auth';
+import { registerSaasRoutes } from './saas-routes';
+import { registerCrmAuthRoutes } from './crm-auth-routes';
+import { registerMigrationRoutes } from './migration-routes';
 import type { LoginResponse, WebsiteContent, ClientRegistrationResponse, User, Client, Project, Milestone, ProjectWithMilestones, Invoice, InvoiceWithClientInfo, Message, MessageWithSender, ClientProfile, UpdateClientProfilePayload, ChangePasswordPayload, FormSubmission, AdminDashboardStats, AnalyticsData, ActivityItem, NotificationPreferences, Service } from "@shared/types";
 // A simple (and insecure) password hashing mock. Replace with a real library like bcrypt in production.
 const mockHash = async (password: string) => `hashed_${password}`;
+
 // Generates a random, memorable password.
 const generatePassword = (length = 10) => {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01223456789';
@@ -90,6 +95,27 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         createdAt: Date.now(),
       };
       await ClientEntity.create(c.env, newClient);
+
+      // Auto-create workspace (tenant) for the new client
+      const slug = company
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .substring(0, 50) || `workspace-${Date.now()}`;
+
+      await TenantEntity.create(c.env, {
+        id: crypto.randomUUID(),
+        name: company || 'My Workspace',
+        slug: `${slug}-${userId.substring(0, 6)}`,
+        ownerId: userId,
+        plan: 'free',
+        branding: {},
+        settings: {
+          timezone: 'Asia/Karachi',
+          currency: 'PKR',
+        },
+      });
+
       const response: ClientRegistrationResponse = {
         client: newClient,
         user: { id: newUser.id, email: newUser.email, name: newUser.name },
@@ -821,4 +847,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       return c.redirect('/?error=google_auth_failed');
     }
   });
+
+  // Register all SaaS routes
+  registerSaasRoutes(app);
+
+  // Register CRM auth routes
+  registerCrmAuthRoutes(app);
+
+  // Register migration routes
+  registerMigrationRoutes(app);
 }

@@ -29,8 +29,19 @@ import ClientFilesPage from './pages/portal/ClientFilesPage';
 import ClientAccountPage from './pages/portal/ClientAccountPage';
 import FilledFormsPage from './pages/admin/FilledFormsPage';
 import ServicesPage from './pages/admin/ServicesPage';
+import TenantsPage from './pages/admin/TenantsPage';
+import CrmAppsPage from './pages/admin/CrmAppsPage';
 import ClientServicesPage from './pages/portal/ClientServicesPage';
 import DemoAppPage from './pages/demo-app/DemoAppPage';
+import MyCrmsPage from './pages/portal/MyCrmsPage';
+import CreateCrmPage from './pages/portal/CreateCrmPage';
+import BillingPage from './pages/portal/BillingPage';
+import { CrmAppLayout } from './components/layout/CrmAppLayout';
+import CrmDashboardPage from './pages/app/CrmDashboardPage';
+import ModuleViewPage from './pages/app/ModuleViewPage';
+import CrmSettingsPage from './pages/app/CrmSettingsPage';
+import CrmUsersPage from './pages/app/CrmUsersPage';
+import CrmLoginPage from './pages/app/CrmLoginPage';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -78,6 +89,16 @@ const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
   },
   {
+    path: "/yenahimilna/workspaces",
+    element: <ProtectedRoute><TenantsPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/yenahimilna/crm-apps",
+    element: <ProtectedRoute><CrmAppsPage /></ProtectedRoute>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
     path: "/yenahimilna/chat",
     element: <ProtectedRoute><AdminChatPage /></ProtectedRoute>,
     errorElement: <RouteErrorBoundary />,
@@ -108,6 +129,16 @@ const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
   },
   {
+    path: "/portal/:clientId/my-crms",
+    element: <MyCrmsPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/portal/:clientId/create-crm",
+    element: <CreateCrmPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
     path: "/portal/:clientId/projects",
     element: <ClientProjectsPage />,
     errorElement: <RouteErrorBoundary />,
@@ -115,6 +146,11 @@ const router = createBrowserRouter([
   {
     path: "/portal/:clientId/invoices",
     element: <ClientInvoicesPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/portal/:clientId/billing",
+    element: <BillingPage />,
     errorElement: <RouteErrorBoundary />,
   },
   {
@@ -131,6 +167,35 @@ const router = createBrowserRouter([
     path: "/portal/:clientId/account",
     element: <ClientAccountPage />,
     errorElement: <RouteErrorBoundary />,
+  },
+  // CRM App Routes
+  {
+    path: "/app/:appId/login",
+    element: <CrmLoginPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/app/:appId",
+    element: <CrmAppLayout />,
+    errorElement: <RouteErrorBoundary />,
+    children: [
+      {
+        index: true,
+        element: <CrmDashboardPage />,
+      },
+      {
+        path: "module/:moduleId",
+        element: <ModuleViewPage />,
+      },
+      {
+        path: "settings",
+        element: <CrmSettingsPage />,
+      },
+      {
+        path: "users",
+        element: <CrmUsersPage />,
+      },
+    ],
   },
 ]);
 createRoot(document.getElementById('root')!).render(
