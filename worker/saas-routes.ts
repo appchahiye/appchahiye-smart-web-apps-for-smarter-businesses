@@ -141,8 +141,9 @@ export function registerSaasRoutes(app: Hono<{ Bindings: Env }>) {
             const result = await createCrmFromWizard(c.env, tenantId, wizardData);
             return ok(c, result);
         } catch (error) {
-            console.error('CRM creation failed:', error);
-            return bad(c, 'Failed to create CRM');
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.error('CRM creation failed:', errorMessage, error);
+            return bad(c, `Failed to create CRM: ${errorMessage}`);
         }
     });
 
